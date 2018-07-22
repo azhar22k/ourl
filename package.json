@@ -1,5 +1,5 @@
 {
-  "name": "ourl",
+  "name": "o-url",
   "version": "1.0.0",
   "description": "Cross platform Node.js Utility to open urls in browser",
   "main": "index.js",
@@ -27,5 +27,6 @@
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^13.0.0",
     "eslint-plugin-import": "^2.13.0"
-  }
+  },
+  "dependencies": {}
 }
