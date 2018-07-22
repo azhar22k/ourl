@@ -1,5 +1,5 @@
 {
-  "name": "o-url",
+  "name": "out-url",
   "version": "1.0.0",
   "description": "Cross platform Node.js Utility to open urls in browser",
   "main": "index.js",
