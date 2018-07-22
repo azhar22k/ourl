@@ -1,6 +1,6 @@
 {
   "name": "out-url",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Cross platform Node.js Utility to open urls in browser",
   "main": "index.js",
   "repository": {
