@@ -1,0 +1,31 @@
+{
+  "name": "ourl",
+  "version": "1.0.0",
+  "description": "Cross platform Node.js Utility to open urls in browser",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itz-azhar/ourl.git"
+  },
+  "keywords": [
+    "open",
+    "url",
+    "browser",
+    "desktop",
+    "macos",
+    "android",
+    "windows",
+    "linux"
+  ],
+  "author": "Azhar Khan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/itz-azhar/ourl/issues"
+  },
+  "homepage": "https://github.com/itz-azhar/ourl#readme",
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^13.0.0",
+    "eslint-plugin-import": "^2.13.0"
+  }
+}
