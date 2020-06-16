@@ -28,3 +28,12 @@ open('http://itz-azhar.github.io')
   .then(res => console.log('RES', res)) // Resolves with Done!
   .catch(err => console.log('ERR', err));
 ```
+
+```javascript
+// Using async/await
+const { open } = require('out-url');
+
+const foo = async () {
+  await open('http://itz-azhar.github.io');
+}
+```
