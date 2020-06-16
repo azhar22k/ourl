@@ -1,5 +1,5 @@
 # out-url
-Cross platform Node.js Utility to open urls in browser
+Light Weight, Cross platform Node.js Utility to open urls in browser with zero dependencies
 
 [![NPM](https://nodei.co/npm/out-url.svg?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/out-url/)
 

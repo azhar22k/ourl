@@ -1,1 +1,5 @@
 .npmrc
+.github/
+.eslint.rc
+*.md
+LICENCE
