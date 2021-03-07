@@ -18,9 +18,6 @@ const commands = (url) => {
 const open = url => new Promise((resolve, reject) => {
   exec(commands(url), (error, stdout, stderr) => {
     if (error) return reject(error);
-    /* eslint-disable no-console */
-    console.log(`stdout: ${stdout}`);
-    console.log(`stderr: ${stderr}`);
     return resolve('Done!');
   });
 });
