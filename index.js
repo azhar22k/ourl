@@ -17,7 +17,11 @@ const commands = (url) => {
 
 const open = url => new Promise((resolve, reject) => {
   try {
-    execSync(commands(url));
+    execSync(
+      commands(
+        encodeURI(url),
+      ),
+    );
     return resolve();
   } catch (error) {
     return reject(error);
