@@ -16,15 +16,15 @@ Light Weight, Cross platform Node.js Utility to open urls in browser with zero d
 ```javascript
 // Plain example
 const { open } = require('out-url');
-open('http://itz-azhar.github.io');
+open('https://github.com/azhar22k');
 //or
-require('out-url').open('http://itz-azhar.github.io');
+require('out-url').open('https://github.com/azhar22k');
 ```
 
 ```javascript
 // With error handling
 const { open } = require('out-url');
-open('http://itz-azhar.github.io')
+open('https://github.com/azhar22k')
   .then(res => console.log('RES', res)) // Resolves with Done!
   .catch(err => console.log('ERR', err));
 ```
@@ -34,6 +34,6 @@ open('http://itz-azhar.github.io')
 const { open } = require('out-url');
 
 const foo = async () {
-  await open('http://itz-azhar.github.io');
+  await open('https://github.com/azhar22k');
 }
 ```
