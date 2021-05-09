@@ -1,4 +1,4 @@
-const { exec } = require('child_process');
+const { execSync } = require('child_process');
 
 const commands = (url) => {
   const { platform } = process;
@@ -16,13 +16,16 @@ const commands = (url) => {
 };
 
 const open = url => new Promise((resolve, reject) => {
-  exec(commands(url), (error, stdout, stderr) => {
-    if (error) return reject(error);
-    /* eslint-disable no-console */
-    console.log(`stdout: ${stdout}`);
-    console.log(`stderr: ${stderr}`);
-    return resolve('Done!');
-  });
+  try {
+    execSync(
+      commands(
+        encodeURI(url),
+      ),
+    );
+    return resolve();
+  } catch (error) {
+    return reject(error);
+  }
 });
 
 module.exports = { open };
