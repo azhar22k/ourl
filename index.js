@@ -1,15 +1,15 @@
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 
-const commands = (url) => {
+const commands = () => {
   const { platform } = process;
   switch (platform) {
     case 'android':
     case 'linux':
-      return `xdg-open ${url}`;
+      return ['xdg-open'];
     case 'darwin':
-      return `open ${url}`;
+      return ['open'];
     case 'win32':
-      return `cmd /c start ${url}`;
+      return ['cmd', ['/c', 'start']];
     default:
       throw new Error(`Platform ${platform} isn't supported.`);
   }
@@ -17,10 +17,10 @@ const commands = (url) => {
 
 const open = url => new Promise((resolve, reject) => {
   try {
-    execSync(
-      commands(
-        encodeURI(url),
-      ),
+    const [command, args = []] = commands();
+    execFileSync(
+      command,
+      [...args, encodeURI(url)],
     );
     return resolve();
   } catch (error) {
