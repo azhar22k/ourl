@@ -28,4 +28,4 @@ const open = url => new Promise((resolve, reject) => {
   }
 });
 
-module.exports = { open };
+module.exports = open;
