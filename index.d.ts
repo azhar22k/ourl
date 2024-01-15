@@ -1,3 +1,3 @@
-declare function open(server: string): Promise<void>;
+declare function open(url: string): Promise<void>;
 
 export { open };
