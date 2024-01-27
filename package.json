@@ -5,7 +5,7 @@
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/itz-azhar/ourl.git"
+    "url": "git+https://github.com/azhar22k/ourl.git"
   },
   "keywords": [
     "open",
@@ -20,9 +20,9 @@
   "author": "Azhar Khan",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/itz-azhar/ourl/issues"
+    "url": "https://github.com/azhar22k/ourl/issues"
   },
-  "homepage": "https://github.com/itz-azhar/ourl#readme",
+  "homepage": "https://github.com/azhar22k/ourl#readme",
   "devDependencies": {
     "eslint": "^8.56.0",
     "eslint-config-airbnb-base": "^15.0.0",
