@@ -1,5 +1,6 @@
 .npmrc
 .github/
 .eslint.rc
+.editorconfig
 *.md
 LICENCE
