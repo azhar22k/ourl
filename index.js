@@ -15,17 +15,12 @@ const commands = () => {
   }
 };
 
-const open = url => new Promise((resolve, reject) => {
-  try {
-    const [command, args = []] = commands();
-    execFileSync(
-      command,
-      [...args, encodeURI(url)],
-    );
-    return resolve();
-  } catch (error) {
-    return reject(error);
-  }
-});
+const open = async (url) => {
+  const [command, args = []] = commands();
+  execFileSync(
+    command,
+    [...args, encodeURI(url)],
+  );
+};
 
 module.exports = { open };
