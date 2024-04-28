@@ -17,9 +17,16 @@ const commands = () => {
 
 const open = async (url) => {
   const [command, args = []] = commands();
+
+  // encode url and replace & with ^& for windows
+  url = encodeURI(url);
+  if (process.platform === 'win32') {
+    url = url.replaceAll('&', '^&');
+  }
+
   execFileSync(
     command,
-    [...args, encodeURI(url)],
+    [...args, url],
   );
 };
 
