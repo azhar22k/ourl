@@ -5,6 +5,7 @@
 *.md
 LICENSE
 .vscode/
-yarn.lock
+bun.lock*
+.husky/
 release-please*.json
 .release-please-manifest.json

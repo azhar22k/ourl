@@ -11,6 +11,8 @@ Light Weight, Cross platform Node.js Utility to open urls in browser with zero d
 ```bash
 npm install out-url
 # or
+bun add out-url
+# or
 yarn add out-url
 ```
 

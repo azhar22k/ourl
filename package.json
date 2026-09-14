@@ -9,7 +9,8 @@
     "index.d.ts"
   ],
   "scripts": {
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "prepare": "bunx husky"
   },
   "repository": {
     "type": "git",
@@ -34,7 +35,9 @@
   "devDependencies": {
     "eslint": "^8.56.0",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.29.1"
+    "eslint-plugin-import": "^2.29.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.1"
   },
   "dependencies": {}
 }
