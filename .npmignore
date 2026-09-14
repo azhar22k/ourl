@@ -1,9 +1,10 @@
 .npmrc
 .github/
-.eslint.rc
+.eslintrc*
 .editorconfig
 *.md
-LICENCE
+LICENSE
 .vscode/
+yarn.lock
 release-please*.json
 .release-please-manifest.json

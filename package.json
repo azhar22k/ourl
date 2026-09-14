@@ -3,6 +3,14 @@
   "version": "1.2.2",
   "description": "Cross platform Node.js Utility to open urls in browser",
   "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
+  "scripts": {
+    "lint": "eslint ."
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/azhar22k/ourl.git"
