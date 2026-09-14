@@ -17,35 +17,56 @@ yarn add out-url
 ```
 
 ## Supported platforms
-- Android
-- Windows
 - MacOS
-- Linux
+- Windows
+- Linux & WSL (Windows Subsystem for Linux)
+- Android (Termux & standard Android environments)
 
-### Example
+## CLI Usage
+
+Run directly without installing via `npx` or `bunx`:
+
+```bash
+# Using out-url or ourl
+npx out-url https://github.com/azhar22k
+# or
+bunx ourl https://github.com/azhar22k
+
+# Wait for browser process to terminate
+npx out-url https://github.com/azhar22k --wait
+```
+
+## API Usage
+
+### Basic Example
 ```javascript
-// Plain example
-const { open } = require('out-url');
+const open = require('out-url');
+// or: const { open } = require('out-url');
+// or: import open, { open as openUrl } from 'out-url';
+
 open('https://github.com/azhar22k');
-//or
-require('out-url').open('https://github.com/azhar22k');
 ```
 
+### Non-blocking vs. Waiting
+By default, `open()` spawns a detached background process and immediately unrefs it so your Node.js process can exit without hanging:
+
 ```javascript
-// With error handling
 const { open } = require('out-url');
+
+// Non-blocking (default): exits immediately while browser stays open
+await open('https://github.com/azhar22k');
+
+// Wait for browser/app process to close before resolving:
+await open('https://github.com/azhar22k', { wait: true });
+```
+
+### With Error Handling
+```javascript
+const { open } = require('out-url');
+
 open('https://github.com/azhar22k')
-  .then(res => console.log('RES', res)) // Resolves with Done!
-  .catch(err => console.log('ERR', err));
-```
-
-```javascript
-// Using async/await
-const { open } = require('out-url');
-
-const foo = async () => {
-  await open('https://github.com/azhar22k');
-};
+  .then((childProcess) => console.log('Launched child PID:', childProcess.pid))
+  .catch((err) => console.error('Failed to open:', err));
 ```
 
 ## Releases & Versioning

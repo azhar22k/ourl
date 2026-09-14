@@ -4,12 +4,18 @@
   "description": "Cross platform Node.js Utility to open urls in browser",
   "main": "index.js",
   "types": "index.d.ts",
+  "bin": {
+    "out-url": "./bin/cli.js",
+    "ourl": "./bin/cli.js"
+  },
   "files": [
     "index.js",
-    "index.d.ts"
+    "index.d.ts",
+    "bin"
   ],
   "scripts": {
     "lint": "eslint .",
+    "test": "bun test",
     "prepare": "bunx husky"
   },
   "repository": {
