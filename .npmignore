@@ -5,3 +5,5 @@
 *.md
 LICENCE
 .vscode/
+release-please*.json
+.release-please-manifest.json
