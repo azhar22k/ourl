@@ -3,6 +3,15 @@
   "version": "1.2.2",
   "description": "Cross platform Node.js Utility to open urls in browser",
   "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
+  "scripts": {
+    "lint": "eslint .",
+    "prepare": "bunx husky"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/azhar22k/ourl.git"
@@ -26,7 +35,9 @@
   "devDependencies": {
     "eslint": "^8.56.0",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.29.1"
+    "eslint-plugin-import": "^2.29.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.1"
   },
   "dependencies": {}
 }
