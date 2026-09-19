@@ -48,7 +48,13 @@
     "cdp",
     "mcp",
     "playwright",
-    "puppeteer"
+    "puppeteer",
+    "function-calling",
+    "ai-tools",
+    "llm",
+    "openai",
+    "anthropic",
+    "gemini"
   ],
   "author": "Azhar Khan",
   "license": "MIT",

@@ -62,11 +62,16 @@ npx out-url https://github.com/azhar22k --fallback
 
 # Machine-readable JSON output for AI agents and scripts
 npx out-url http://localhost:3000 --json
+
+# Print LLM Function Calling tool definition schema (OpenAI, Anthropic, Gemini)
+npx out-url --schema
+npx out-url --schema=anthropic
+npx out-url --schema=gemini
 ```
 
 ## AI Agents & Automation
 
-`out-url` is designed to be agent-ready for AI assistants (Cursor, Claude, Antigravity, Copilot) and automation scripts.
+`out-url` is built from the ground up to be agent-ready for AI coding assistants (Cursor, Claude, Antigravity, Copilot), LLM frameworks, and automated scripts.
 
 ### Machine-Readable JSON Output (`--json`)
 AI agents and scripts can inspect the exact launch status and process ID without parsing human terminal output:
@@ -86,7 +91,7 @@ Output:
 }
 ```
 
-## AI Agents, DevTools & Browser Automation
+### Custom Browser Flags & Remote Debugging (`--browser-args`)
 
 When building AI coding agents, test runners, or browser automation pipelines (such as Playwright, Puppeteer, or Chrome DevTools MCP servers), you often need to launch an actual desktop browser configured with remote debugging flags:
 
@@ -107,6 +112,48 @@ await open('http://localhost:3000', {
     '--disable-gpu',
     '--user-data-dir=/tmp/agent-chrome-profile',
   ],
+});
+```
+
+### Built-in LLM Tool Definitions (Function Calling)
+
+Building an autonomous agent or AI assistant? `out-url` ships with pre-configured tool schemas ready to drop into **OpenAI**, **Anthropic Claude**, **Google Gemini**, and **Vercel AI SDK** with zero boilerplate.
+
+#### CLI Schema Inspection
+Piping the tool schema into prompt files or agent definitions:
+```bash
+# OpenAI / standard JSON Schema format
+npx out-url --schema
+
+# Anthropic Claude format
+npx out-url --schema=anthropic
+
+# Google Gemini format
+npx out-url --schema=gemini
+```
+
+#### In Node.js / TypeScript Agents
+```javascript
+const { open, toolDefinition, getToolDefinition } = require('out-url');
+
+// 1. OpenAI Function Calling
+const completion = await openai.chat.completions.create({
+  model: 'gpt-4o',
+  messages: [{ role: 'user', content: 'Open localhost:3000 in Chrome' }],
+  tools: [toolDefinition],
+});
+
+// 2. Anthropic Claude Tools
+const claudeMsg = await anthropic.messages.create({
+  model: 'claude-3-5-sonnet-20241022',
+  messages: [{ role: 'user', content: 'Open GitHub repo' }],
+  tools: [getToolDefinition({ format: 'anthropic' })],
+});
+
+// 3. Google Gemini Function Declarations
+const geminiModel = genAI.getGenerativeModel({
+  model: 'gemini-1.5-pro',
+  tools: [{ functionDeclarations: [getToolDefinition({ format: 'gemini' })] }],
 });
 ```
 

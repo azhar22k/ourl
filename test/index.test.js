@@ -315,6 +315,38 @@ describe('out-url core', () => {
       assert.deepStrictEqual(open.normalizeBrowserArgs(123), []);
     });
   });
+
+  describe('toolDefinition and getToolDefinition', () => {
+    it('provides standard OpenAI toolDefinition by default', () => {
+      const def = open.toolDefinition;
+      assert.strictEqual(def.type, 'function');
+      assert.strictEqual(def.function.name, 'open_in_browser');
+      assert.strictEqual(typeof def.function.description, 'string');
+      assert.strictEqual(def.function.parameters.type, 'object');
+      assert.ok(def.function.parameters.properties.url);
+      assert.ok(def.function.parameters.properties.app);
+      assert.ok(def.function.parameters.properties.incognito);
+      assert.deepStrictEqual(def.function.parameters.required, ['url']);
+    });
+
+    it('generates Anthropic Claude tool definition schema', () => {
+      const def = open.getToolDefinition({ format: 'anthropic' });
+      assert.strictEqual(def.name, 'open_in_browser');
+      assert.strictEqual(typeof def.description, 'string');
+      assert.strictEqual(def.input_schema.type, 'object');
+      assert.ok(def.input_schema.properties.url);
+      assert.deepStrictEqual(def.input_schema.required, ['url']);
+    });
+
+    it('generates Google Gemini tool definition schema', () => {
+      const def = open.getToolDefinition({ format: 'gemini' });
+      assert.strictEqual(def.name, 'open_in_browser');
+      assert.strictEqual(def.parameters.type, 'OBJECT');
+      assert.strictEqual(def.parameters.properties.url.type, 'STRING');
+      assert.strictEqual(def.parameters.properties.incognito.type, 'BOOLEAN');
+      assert.deepStrictEqual(def.parameters.required, ['url']);
+    });
+  });
 });
 
 describe('out-url CLI', () => {
@@ -336,6 +368,7 @@ describe('out-url CLI', () => {
     assert.match(output, /--args/);
     assert.match(output, /--fallback/);
     assert.match(output, /--json/);
+    assert.match(output, /--schema/);
     assert.match(output, /<command> \| out-url/);
   });
 
@@ -343,6 +376,27 @@ describe('out-url CLI', () => {
     const output = execFileSync(process.execPath, [cliPath, '-v', '--json'], { encoding: 'utf8' });
     const parsed = JSON.parse(output.trim());
     assert.strictEqual(parsed.version, pkg.version);
+  });
+
+  it('prints default OpenAI tool schema with --schema flag', () => {
+    const output = execFileSync(process.execPath, [cliPath, '--schema'], { encoding: 'utf8' });
+    const parsed = JSON.parse(output.trim());
+    assert.strictEqual(parsed.type, 'function');
+    assert.strictEqual(parsed.function.name, 'open_in_browser');
+  });
+
+  it('prints Anthropic tool schema with --schema=anthropic flag', () => {
+    const output = execFileSync(process.execPath, [cliPath, '--schema=anthropic'], { encoding: 'utf8' });
+    const parsed = JSON.parse(output.trim());
+    assert.strictEqual(parsed.name, 'open_in_browser');
+    assert.ok(parsed.input_schema);
+  });
+
+  it('prints Gemini tool schema with --schema=gemini flag', () => {
+    const output = execFileSync(process.execPath, [cliPath, '--schema=gemini'], { encoding: 'utf8' });
+    const parsed = JSON.parse(output.trim());
+    assert.strictEqual(parsed.name, 'open_in_browser');
+    assert.strictEqual(parsed.parameters.type, 'OBJECT');
   });
 
   it('outputs error JSON when no target is provided and --json is set', () => {
