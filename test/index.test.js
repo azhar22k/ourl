@@ -166,6 +166,48 @@ describe('out-url core', () => {
       assert.strictEqual(open.resolveTarget(webUrl), webUrl);
     });
   });
+
+  describe('headless environment detection and fallback', () => {
+    it('detects headless Linux without display', () => {
+      setPlatform('linux');
+      delete process.env.DISPLAY;
+      delete process.env.WAYLAND_DISPLAY;
+      delete process.env.WSL_DISTRO_NAME;
+      delete process.env.WSL_INTEROP;
+      assert.strictEqual(open.isHeadless(), true);
+    });
+
+    it('detects non-headless Linux when DISPLAY is present', () => {
+      setPlatform('linux');
+      process.env.DISPLAY = ':0';
+      assert.strictEqual(open.isHeadless(), false);
+    });
+
+    it('returns false for darwin or win32', () => {
+      setPlatform('darwin');
+      assert.strictEqual(open.isHeadless(), false);
+      setPlatform('win32');
+      assert.strictEqual(open.isHeadless(), false);
+    });
+
+    it('invokes fallback callback in headless environment', async () => {
+      setPlatform('linux');
+      delete process.env.DISPLAY;
+      delete process.env.WAYLAND_DISPLAY;
+      delete process.env.WSL_DISTRO_NAME;
+      delete process.env.WSL_INTEROP;
+
+      let calledUrl = null;
+      const res = await open('https://example.com', {
+        fallback: (url) => {
+          calledUrl = url;
+        },
+      });
+
+      assert.strictEqual(res, null);
+      assert.strictEqual(calledUrl, 'https://example.com');
+    });
+  });
 });
 
 describe('out-url CLI', () => {
@@ -181,6 +223,7 @@ describe('out-url CLI', () => {
     assert.match(output, /Usage:/);
     assert.match(output, /--wait/);
     assert.match(output, /--repo/);
+    assert.match(output, /--fallback/);
     assert.match(output, /<command> \| out-url/);
   });
 

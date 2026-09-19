@@ -19,6 +19,7 @@ const showHelp = () => {
   Options:
     --repo         Open the current git repository's remote URL
     --wait         Wait for the opened process to terminate
+    --fallback     Gracefully print URL in headless/CI environments without display
     -v, --version  Display version
     -h, --help     Display this help message
 
@@ -26,6 +27,7 @@ const showHelp = () => {
     $ out-url https://github.com
     $ ourl --repo
     $ ourl https://github.com --wait
+    $ ourl https://github.com --fallback
     $ echo "https://github.com" | out-url
 `);
 };
@@ -61,6 +63,7 @@ const run = async () => {
   }
 
   const wait = args.includes('--wait');
+  const fallback = args.includes('--fallback');
   let url = args.find((arg) => !arg.startsWith('-'));
 
   if (args.includes('--repo')) {
@@ -82,7 +85,7 @@ const run = async () => {
   }
 
   try {
-    await open(url, { wait });
+    await open(url, { wait, fallback });
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error(err);

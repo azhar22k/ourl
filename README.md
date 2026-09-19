@@ -47,6 +47,9 @@ npx out-url https://github.com/azhar22k --wait
 # Pipe URL from other commands (STDIN)
 git remote get-url origin | npx out-url
 echo "https://github.com/azhar22k" | bunx ourl
+
+# Print URL in headless CI / Docker environments without a display
+npx out-url https://github.com/azhar22k --fallback
 ```
 
 ## API Usage
@@ -75,6 +78,9 @@ await open('https://github.com/azhar22k');
 
 // Wait for browser/app process to close before resolving:
 await open('https://github.com/azhar22k', { wait: true });
+
+// Gracefully handle headless/CI environments (e.g. Docker, SSH):
+await open('https://github.com/azhar22k', { fallback: true });
 ```
 
 ### With Error Handling

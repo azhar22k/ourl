@@ -42,6 +42,12 @@ const getGitRepoUrl = (remote = 'origin') => {
   }
 };
 
+const isHeadless = () => {
+  if (process.platform !== 'linux') return false;
+  if (isWsl()) return false;
+  return !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY;
+};
+
 const getCommands = (options = {}) => {
   const { platform } = process;
 
@@ -80,6 +86,17 @@ const open = (url, options = {}) => new Promise((resolve, reject) => {
   const target = resolveTarget(url);
   const [command, baseArgs = []] = getCommands(options);
   const formattedUrl = formatUrl(target, command);
+
+  if (options.fallback && isHeadless()) {
+    if (typeof options.fallback === 'function') {
+      options.fallback(formattedUrl);
+    } else {
+      // eslint-disable-next-line no-console
+      console.log(`[out-url] Headless environment detected. Open link: ${formattedUrl}`);
+    }
+    resolve(null);
+    return;
+  }
   const args = [...baseArgs, formattedUrl];
 
   const child = spawn(command, args, {
@@ -107,6 +124,7 @@ const open = (url, options = {}) => new Promise((resolve, reject) => {
 open.open = open;
 open.getCommands = getCommands;
 open.isWsl = isWsl;
+open.isHeadless = isHeadless;
 open.formatUrl = formatUrl;
 open.resolveTarget = resolveTarget;
 open.parseGitRemoteUrl = parseGitRemoteUrl;
