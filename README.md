@@ -35,6 +35,12 @@ bunx ourl https://github.com/azhar22k
 # Open current git repository's remote URL in browser
 npx out-url --repo
 
+# Open local HTML files or reports
+npx out-url ./coverage/index.html
+
+# Reveal current directory
+npx out-url .
+
 # Wait for browser process to terminate
 npx out-url https://github.com/azhar22k --wait
 
@@ -51,7 +57,11 @@ const open = require('out-url');
 // or: const { open } = require('out-url');
 // or: import open, { open as openUrl } from 'out-url';
 
+// Open web URLs
 open('https://github.com/azhar22k');
+
+// Open local files or folders
+open('./coverage/index.html');
 ```
 
 ### Non-blocking vs. Waiting
