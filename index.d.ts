@@ -26,11 +26,28 @@ export interface OpenOptions {
   browserArgs?: string[] | string;
 
   /**
+   * Simulate command resolution without spawning a process.
+   * Returns a DryRunResult containing command and arguments.
+   * @default false
+   */
+  dryRun?: boolean;
+
+  /**
    * Gracefully handle headless/CI environments without a display server.
    * If true, logs the URL. Can also be a custom callback `(url: string) => void`.
    * @default false
    */
   fallback?: boolean | ((url: string) => void);
+}
+
+export interface DryRunResult {
+  dryRun: true;
+  command: string;
+  args: string[];
+  target: string;
+  resolvedTarget: string;
+  formattedUrl: string;
+  platform: string;
 }
 
 export interface ToolDefinition {
@@ -54,7 +71,8 @@ export interface McpServerInstance {
   close: () => void;
 }
 
-declare function open(url: string, options?: OpenOptions): Promise<ChildProcess | null>;
+declare function open(url: string, options: OpenOptions & { dryRun: true }): Promise<DryRunResult>;
+declare function open(url: string, options?: OpenOptions): Promise<ChildProcess | DryRunResult | null>;
 
 declare namespace open {
   export function isHeadless(): boolean;

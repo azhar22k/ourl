@@ -331,6 +331,7 @@ describe('out-url core', () => {
       assert.ok(def.function.parameters.properties.url);
       assert.ok(def.function.parameters.properties.app);
       assert.ok(def.function.parameters.properties.incognito);
+      assert.ok(def.function.parameters.properties.dryRun);
       assert.deepStrictEqual(def.function.parameters.required, ['url']);
     });
 
@@ -340,6 +341,7 @@ describe('out-url core', () => {
       assert.strictEqual(typeof def.description, 'string');
       assert.strictEqual(def.input_schema.type, 'object');
       assert.ok(def.input_schema.properties.url);
+      assert.ok(def.input_schema.properties.dryRun);
       assert.deepStrictEqual(def.input_schema.required, ['url']);
     });
 
@@ -349,6 +351,7 @@ describe('out-url core', () => {
       assert.strictEqual(def.parameters.type, 'OBJECT');
       assert.strictEqual(def.parameters.properties.url.type, 'STRING');
       assert.strictEqual(def.parameters.properties.incognito.type, 'BOOLEAN');
+      assert.strictEqual(def.parameters.properties.dryRun.type, 'BOOLEAN');
       assert.deepStrictEqual(def.parameters.required, ['url']);
     });
   });
@@ -509,6 +512,45 @@ describe('out-url core', () => {
       server.close();
     });
   });
+
+  describe('dryRun simulation mode', () => {
+    it('returns command preview without spawning child process', async () => {
+      setPlatform('darwin');
+      const result = await open('https://example.com', { dryRun: true });
+      assert.strictEqual(result.dryRun, true);
+      assert.strictEqual(result.command, 'open');
+      assert.deepStrictEqual(result.args, ['https://example.com']);
+      assert.strictEqual(result.target, 'https://example.com');
+      assert.strictEqual(result.platform, 'darwin');
+    });
+
+    it('resolves browser args and custom app in dryRun mode', async () => {
+      setPlatform('darwin');
+      const result = await open('http://localhost:3000', {
+        app: 'chrome',
+        browserArgs: ['--remote-debugging-port=9222'],
+        dryRun: true,
+      });
+      assert.strictEqual(result.dryRun, true);
+      assert.strictEqual(result.command, 'open');
+      assert.deepStrictEqual(result.args, [
+        '-a',
+        'Google Chrome',
+        '-n',
+        '--args',
+        '--remote-debugging-port=9222',
+        'http://localhost:3000',
+      ]);
+    });
+
+    it('resolves win32 command structure in dryRun mode', async () => {
+      setPlatform('win32');
+      const result = await open('https://example.com', { dryRun: true });
+      assert.strictEqual(result.dryRun, true);
+      assert.strictEqual(result.command, 'cmd.exe');
+      assert.deepStrictEqual(result.args, ['/c', 'start', '""', 'https://example.com']);
+    });
+  });
 });
 
 describe('out-url CLI', () => {
@@ -529,6 +571,7 @@ describe('out-url CLI', () => {
     assert.match(output, /--browser-args/);
     assert.match(output, /--args/);
     assert.match(output, /--fallback/);
+    assert.match(output, /--dry-run/);
     assert.match(output, /--json/);
     assert.match(output, /--schema/);
     assert.match(output, /--mcp/);
@@ -617,5 +660,30 @@ describe('out-url CLI', () => {
     const parsed = JSON.parse(output.trim());
     assert.strictEqual(parsed.id, 99);
     assert.deepStrictEqual(parsed.result, {});
+  });
+
+  it('outputs human-readable command preview with --dry-run', () => {
+    const output = execFileSync(
+      process.execPath,
+      [cliPath, 'https://example.com', '--dry-run'],
+      { encoding: 'utf8' },
+    );
+    assert.match(output, /\[out-url dry-run\] Would execute:/);
+    assert.match(output, /https:\/\/example\.com/);
+  });
+
+  it('outputs JSON command preview with --dry-run and --json', () => {
+    const output = execFileSync(
+      process.execPath,
+      [cliPath, 'http://localhost:3000', '--app', 'chrome', '--args=--remote-debugging-port=9222', '--dry-run', '--json'],
+      { encoding: 'utf8' },
+    );
+    const parsed = JSON.parse(output.trim());
+    assert.strictEqual(parsed.status, 'dry_run');
+    assert.strictEqual(typeof parsed.command, 'string');
+    assert.ok(Array.isArray(parsed.args));
+    assert.strictEqual(parsed.target, 'http://localhost:3000');
+    assert.ok(parsed.args.includes('--remote-debugging-port=9222'));
+    assert.strictEqual(parsed.platform, process.platform);
   });
 });

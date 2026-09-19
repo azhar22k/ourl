@@ -60,6 +60,10 @@ echo "https://github.com" | bunx ourl
 # Print URL in headless CI / Docker environments without a display
 npx out-url https://github.com/azhar22k --fallback
 
+# Command simulation & preview without launching browser (dry-run)
+npx out-url http://localhost:3000 --dry-run
+npx out-url http://localhost:3000 --dry-run --json
+
 # Machine-readable JSON output for AI agents and scripts
 npx out-url http://localhost:3000 --json
 
@@ -157,6 +161,48 @@ await open('http://localhost:3000', {
 });
 ```
 
+### Command Preview & Simulation (`--dry-run` / `dryRun: true`)
+
+Before executing external operating system commands, AI agents and security-hardened wrappers often need to preview or inspect the resolved command executable binary and arguments without spawning child processes:
+
+```bash
+npx out-url http://localhost:3000 --app chrome --browser-args="--remote-debugging-port=9222" --dry-run --json
+```
+
+Output:
+```json
+{
+  "status": "dry_run",
+  "command": "open",
+  "args": [
+    "-a",
+    "Google Chrome",
+    "-n",
+    "--args",
+    "--remote-debugging-port=9222",
+    "http://localhost:3000"
+  ],
+  "target": "http://localhost:3000",
+  "resolvedTarget": "http://localhost:3000",
+  "formattedUrl": "http://localhost:3000",
+  "platform": "darwin"
+}
+```
+
+In Node.js:
+```javascript
+const { open } = require('out-url');
+
+const preview = await open('http://localhost:3000', {
+  app: 'chrome',
+  browserArgs: '--remote-debugging-port=9222',
+  dryRun: true,
+});
+
+console.log(preview.command); // 'open' (or 'cmd.exe', 'xdg-open')
+console.log(preview.args);    // ['-a', 'Google Chrome', ...]
+```
+
 ### Built-in LLM Tool Definitions (Function Calling)
 
 Building an autonomous agent or AI assistant? `out-url` ships with pre-configured tool schemas ready to drop into **OpenAI**, **Anthropic Claude**, **Google Gemini**, and **Vercel AI SDK** with zero boilerplate.
@@ -237,6 +283,9 @@ await open('http://localhost:3000', {
   app: 'chrome',
   browserArgs: '--remote-debugging-port=9222',
 });
+
+// Dry-run command simulation (no process spawned):
+const preview = await open('http://localhost:3000', { dryRun: true });
 
 // Gracefully handle headless/CI environments (e.g. Docker, SSH):
 await open('https://github.com/azhar22k', { fallback: true });

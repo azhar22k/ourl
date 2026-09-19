@@ -173,6 +173,19 @@ const open = (url, options = {}) => new Promise((resolve, reject) => {
   }
   const args = [...baseArgs, formattedUrl];
 
+  if (options.dryRun) {
+    resolve({
+      dryRun: true,
+      command,
+      args,
+      target: url,
+      resolvedTarget: target,
+      formattedUrl,
+      platform: process.platform,
+    });
+    return;
+  }
+
   const child = spawn(command, args, {
     detached: !options.wait,
     stdio: 'ignore',
@@ -211,6 +224,10 @@ const TOOL_SCHEMA_PROPERTIES = {
   browserArgs: {
     type: 'string',
     description: 'Additional flags or arguments to pass to the browser (e.g. "--remote-debugging-port=9222").',
+  },
+  dryRun: {
+    type: 'boolean',
+    description: 'Simulate command resolution without launching the browser/app process.',
   },
   wait: {
     type: 'boolean',
