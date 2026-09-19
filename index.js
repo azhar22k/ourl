@@ -1,10 +1,20 @@
 const { spawn, execFileSync } = require('child_process');
 const os = require('os');
+const { existsSync } = require('fs');
+const { resolve: pathResolve } = require('path');
+const { pathToFileURL } = require('url');
 
 const isWsl = () => {
   if (process.platform !== 'linux') return false;
   if (process.env.WSL_DISTRO_NAME || process.env.WSL_INTEROP) return true;
   return os.release().toLowerCase().includes('microsoft');
+};
+
+const resolveTarget = (target) => {
+  if (typeof target === 'string' && existsSync(target)) {
+    return pathToFileURL(pathResolve(target)).href;
+  }
+  return target;
 };
 
 const parseGitRemoteUrl = (remoteUrl) => {
@@ -67,8 +77,9 @@ const formatUrl = (url, command) => {
 };
 
 const open = (url, options = {}) => new Promise((resolve, reject) => {
+  const target = resolveTarget(url);
   const [command, baseArgs = []] = getCommands(options);
-  const formattedUrl = formatUrl(url, command);
+  const formattedUrl = formatUrl(target, command);
   const args = [...baseArgs, formattedUrl];
 
   const child = spawn(command, args, {
@@ -97,6 +108,7 @@ open.open = open;
 open.getCommands = getCommands;
 open.isWsl = isWsl;
 open.formatUrl = formatUrl;
+open.resolveTarget = resolveTarget;
 open.parseGitRemoteUrl = parseGitRemoteUrl;
 open.getGitRepoUrl = getGitRepoUrl;
 

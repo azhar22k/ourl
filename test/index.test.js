@@ -149,6 +149,23 @@ describe('out-url core', () => {
       assert.strictEqual(repoUrl, 'https://github.com/azhar22k/ourl');
     });
   });
+
+  describe('local file and path resolution', () => {
+    it('resolves existing local file path to file:// URL', () => {
+      const resolved = open.resolveTarget('README.md');
+      assert.match(resolved, /^file:\/\/\/.*README\.md$/);
+    });
+
+    it('resolves current directory path . to file:// URL', () => {
+      const resolved = open.resolveTarget('.');
+      assert.match(resolved, /^file:\/\/\//);
+    });
+
+    it('leaves web URLs unchanged', () => {
+      const webUrl = 'https://github.com/azhar22k/ourl';
+      assert.strictEqual(open.resolveTarget(webUrl), webUrl);
+    });
+  });
 });
 
 describe('out-url CLI', () => {
