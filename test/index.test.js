@@ -43,6 +43,15 @@ describe('out-url core', () => {
     assert.strictEqual(pkg.exports['.'].types, './index.d.ts');
   });
 
+  it('defines comprehensive package keywords in package.json', () => {
+    assert.ok(Array.isArray(pkg.keywords));
+    assert.ok(pkg.keywords.length >= 30);
+    assert.ok(pkg.keywords.includes('open-url'));
+    assert.ok(pkg.keywords.includes('mcp'));
+    assert.ok(pkg.keywords.includes('dry-run'));
+    assert.ok(pkg.keywords.includes('validate-url'));
+  });
+
   describe('command resolution across platforms', () => {
     it('resolves darwin open command without wait', () => {
       setPlatform('darwin');
