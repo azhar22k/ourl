@@ -45,6 +45,15 @@ export interface GetToolDefinitionOptions {
   format?: 'openai' | 'anthropic' | 'claude' | 'gemini';
 }
 
+export interface McpServerOptions {
+  inStream?: NodeJS.ReadableStream;
+  outStream?: NodeJS.WritableStream;
+}
+
+export interface McpServerInstance {
+  close: () => void;
+}
+
 declare function open(url: string, options?: OpenOptions): Promise<ChildProcess | null>;
 
 declare namespace open {
@@ -55,10 +64,12 @@ declare namespace open {
   export function normalizeBrowserArgs(browserArgs?: string[] | string): string[];
   export const toolDefinition: ToolDefinition;
   export function getToolDefinition(options?: GetToolDefinitionOptions): ToolDefinition;
+  export function startMcpServer(options?: McpServerOptions): McpServerInstance;
 }
 
 export const toolDefinition: ToolDefinition;
 export const getToolDefinition: (options?: GetToolDefinitionOptions) => ToolDefinition;
+export const startMcpServer: (options?: McpServerOptions) => McpServerInstance;
 
 export { open };
 export default open;

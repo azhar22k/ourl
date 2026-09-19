@@ -31,6 +31,7 @@ const showHelp = () => {
     --fallback                    Gracefully print URL in headless/CI environments without display
     --json                        Output result as machine-readable JSON for agents/scripts
     --schema[=format]             Output LLM tool definition schema (openai, anthropic, gemini)
+    --mcp                         Run as Model Context Protocol (MCP) server over stdio
     -v, --version                 Display version
     -h, --help                    Display this help message
 
@@ -41,6 +42,7 @@ const showHelp = () => {
     $ out-url http://localhost:3000 --app chrome --browser-args="--remote-debugging-port=9222"
     $ out-url http://localhost:3000 --json
     $ out-url --schema
+    $ out-url --mcp
     $ ourl --repo
     $ ourl https://github.com --wait
     $ ourl https://github.com --fallback
@@ -75,6 +77,11 @@ const readStdin = () => new Promise((resolve) => {
 });
 
 const run = async () => {
+  if (args.includes('--mcp')) {
+    open.startMcpServer();
+    return;
+  }
+
   if (args.includes('-h') || args.includes('--help')) {
     showHelp();
     process.exit(0);
