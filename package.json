@@ -4,6 +4,13 @@
   "description": "Cross platform Node.js Utility to open urls in browser",
   "main": "index.js",
   "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "bin": {
     "out-url": "./bin/cli.js",
     "ourl": "./bin/cli.js"
