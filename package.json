@@ -42,7 +42,13 @@
     "agent",
     "ai-agent",
     "automation",
-    "cli"
+    "cli",
+    "browser-args",
+    "remote-debugging",
+    "cdp",
+    "mcp",
+    "playwright",
+    "puppeteer"
   ],
   "author": "Azhar Khan",
   "license": "MIT",

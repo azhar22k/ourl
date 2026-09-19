@@ -47,12 +47,15 @@ npx out-url http://localhost:3000 --app firefox
 # Open in incognito / private browsing mode
 npx out-url http://localhost:3000 -i
 
+# Pass custom browser flags (e.g. Chrome DevTools Protocol / CDP remote debugging port)
+npx out-url http://localhost:3000 --app chrome --browser-args="--remote-debugging-port=9222"
+
 # Wait for browser process to terminate
 npx out-url https://github.com/azhar22k --wait
 
 # Pipe URL from other commands (STDIN)
 git remote get-url origin | npx out-url
-echo "https://github.com/azhar22k" | bunx ourl
+echo "https://github.com" | bunx ourl
 
 # Print URL in headless CI / Docker environments without a display
 npx out-url https://github.com/azhar22k --fallback
@@ -81,6 +84,30 @@ Output:
   "pid": 58312,
   "platform": "darwin"
 }
+```
+
+## AI Agents, DevTools & Browser Automation
+
+When building AI coding agents, test runners, or browser automation pipelines (such as Playwright, Puppeteer, or Chrome DevTools MCP servers), you often need to launch an actual desktop browser configured with remote debugging flags:
+
+```bash
+# Launch Chrome with a remote debugging port for CDP / DevTools agents
+npx out-url http://localhost:3000 --app chrome --browser-args="--remote-debugging-port=9222 --disable-gpu"
+```
+
+In Node.js:
+```javascript
+const { open } = require('out-url');
+
+// Launch browser with remote debugging for AI agents or Playwright/Puppeteer CDP connection
+await open('http://localhost:3000', {
+  app: 'chrome',
+  browserArgs: [
+    '--remote-debugging-port=9222',
+    '--disable-gpu',
+    '--user-data-dir=/tmp/agent-chrome-profile',
+  ],
+});
 ```
 
 ## API Usage
@@ -115,6 +142,12 @@ await open('http://localhost:3000', { app: 'firefox' });
 
 // Open in private/incognito mode:
 await open('http://localhost:3000', { incognito: true });
+
+// Pass custom browser flags (string or array):
+await open('http://localhost:3000', {
+  app: 'chrome',
+  browserArgs: '--remote-debugging-port=9222',
+});
 
 // Gracefully handle headless/CI environments (e.g. Docker, SSH):
 await open('https://github.com/azhar22k', { fallback: true });

@@ -110,6 +110,29 @@ describe('out-url core', () => {
       assert.deepStrictEqual(args2, ['-a', 'Google Chrome', '-n', '--args', '--incognito']);
     });
 
+    it('resolves darwin open with browserArgs', () => {
+      setPlatform('darwin');
+      const [cmd, args] = open.getCommands({ browserArgs: ['--remote-debugging-port=9222'] });
+      assert.strictEqual(cmd, 'open');
+      assert.deepStrictEqual(args, ['-a', 'Google Chrome', '-n', '--args', '--remote-debugging-port=9222']);
+
+      const [cmd2, args2] = open.getCommands({
+        app: 'chrome',
+        incognito: true,
+        browserArgs: '--remote-debugging-port=9222 --disable-gpu',
+      });
+      assert.strictEqual(cmd2, 'open');
+      assert.deepStrictEqual(args2, [
+        '-a',
+        'Google Chrome',
+        '-n',
+        '--args',
+        '--incognito',
+        '--remote-debugging-port=9222',
+        '--disable-gpu',
+      ]);
+    });
+
     it('resolves win32 cmd.exe with app and incognito options', () => {
       setPlatform('win32');
       const [cmd, args] = open.getCommands({ app: 'firefox' });
@@ -121,6 +144,21 @@ describe('out-url core', () => {
       assert.deepStrictEqual(args2, ['/c', 'start', '""', 'chrome', '--incognito']);
     });
 
+    it('resolves win32 cmd.exe with browserArgs', () => {
+      setPlatform('win32');
+      const [cmd, args] = open.getCommands({ browserArgs: ['--remote-debugging-port=9222'] });
+      assert.strictEqual(cmd, 'cmd.exe');
+      assert.deepStrictEqual(args, ['/c', 'start', '""', 'chrome', '--remote-debugging-port=9222']);
+
+      const [cmd2, args2] = open.getCommands({
+        app: 'edge',
+        incognito: true,
+        browserArgs: '--remote-debugging-port=9222',
+      });
+      assert.strictEqual(cmd2, 'cmd.exe');
+      assert.deepStrictEqual(args2, ['/c', 'start', '""', 'msedge', '--inprivate', '--remote-debugging-port=9222']);
+    });
+
     it('resolves linux with app and incognito options', () => {
       setPlatform('linux');
       delete process.env.WSL_DISTRO_NAME;
@@ -128,6 +166,23 @@ describe('out-url core', () => {
       const [cmd, args] = open.getCommands({ app: 'firefox', incognito: true });
       assert.strictEqual(cmd, 'firefox');
       assert.deepStrictEqual(args, ['--private-window']);
+    });
+
+    it('resolves linux with browserArgs', () => {
+      setPlatform('linux');
+      delete process.env.WSL_DISTRO_NAME;
+      delete process.env.WSL_INTEROP;
+      const [cmd, args] = open.getCommands({ browserArgs: ['--remote-debugging-port=9222'] });
+      assert.strictEqual(cmd, 'google-chrome');
+      assert.deepStrictEqual(args, ['--remote-debugging-port=9222']);
+
+      const [cmd2, args2] = open.getCommands({
+        app: 'firefox',
+        incognito: true,
+        browserArgs: '--remote-debugging-port=9222',
+      });
+      assert.strictEqual(cmd2, 'firefox');
+      assert.deepStrictEqual(args2, ['--private-window', '--remote-debugging-port=9222']);
     });
 
     it('throws on unsupported platform', () => {
@@ -239,6 +294,27 @@ describe('out-url core', () => {
       assert.strictEqual(calledUrl, 'https://example.com');
     });
   });
+
+  describe('normalizeBrowserArgs', () => {
+    it('returns array as is if already an array', () => {
+      const args = ['--remote-debugging-port=9222', '--disable-gpu'];
+      assert.deepStrictEqual(open.normalizeBrowserArgs(args), args);
+    });
+
+    it('splits space-delimited argument strings', () => {
+      assert.deepStrictEqual(
+        open.normalizeBrowserArgs('--remote-debugging-port=9222 --disable-gpu'),
+        ['--remote-debugging-port=9222', '--disable-gpu'],
+      );
+    });
+
+    it('returns empty array for non-string/non-array values', () => {
+      assert.deepStrictEqual(open.normalizeBrowserArgs(null), []);
+      assert.deepStrictEqual(open.normalizeBrowserArgs(undefined), []);
+      assert.deepStrictEqual(open.normalizeBrowserArgs(''), []);
+      assert.deepStrictEqual(open.normalizeBrowserArgs(123), []);
+    });
+  });
 });
 
 describe('out-url CLI', () => {
@@ -256,6 +332,8 @@ describe('out-url CLI', () => {
     assert.match(output, /--repo/);
     assert.match(output, /--app/);
     assert.match(output, /--incognito/);
+    assert.match(output, /--browser-args/);
+    assert.match(output, /--args/);
     assert.match(output, /--fallback/);
     assert.match(output, /--json/);
     assert.match(output, /<command> \| out-url/);
@@ -289,5 +367,23 @@ describe('out-url CLI', () => {
         return true;
       },
     );
+  });
+
+  it('handles --fallback with --browser-args without throwing in CLI', () => {
+    const output = execFileSync(
+      process.execPath,
+      [cliPath, 'https://example.com', '--fallback', '--browser-args=--remote-debugging-port=9222'],
+      {
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          DISPLAY: '',
+          WAYLAND_DISPLAY: '',
+          WSL_DISTRO_NAME: '',
+          WSL_INTEROP: '',
+        },
+      },
+    );
+    assert.ok(typeof output === 'string');
   });
 });

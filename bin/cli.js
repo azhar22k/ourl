@@ -23,19 +23,21 @@ const showHelp = () => {
     $ <command> | out-url
 
   Options:
-    --app <browser> Open in specific browser (e.g. chrome, firefox, edge, safari)
-    -i, --incognito Open in private/incognito browsing mode
-    --repo          Open the current git repository's remote URL
-    --wait          Wait for the opened process to terminate
-    --fallback      Gracefully print URL in headless/CI environments without display
-    --json          Output result as machine-readable JSON for agents/scripts
-    -v, --version   Display version
-    -h, --help      Display this help message
+    --app <browser>               Open in specific browser (e.g. chrome, firefox, edge, safari)
+    -i, --incognito               Open in private/incognito browsing mode
+    --browser-args, --args <args> Pass custom arguments to browser (e.g. --remote-debugging-port=9222)
+    --repo                        Open the current git repository's remote URL
+    --wait                        Wait for the opened process to terminate
+    --fallback                    Gracefully print URL in headless/CI environments without display
+    --json                        Output result as machine-readable JSON for agents/scripts
+    -v, --version                 Display version
+    -h, --help                    Display this help message
 
   Examples:
     $ out-url https://github.com
     $ out-url http://localhost:3000 --app firefox
     $ out-url http://localhost:3000 -i
+    $ out-url http://localhost:3000 --app chrome --browser-args="--remote-debugging-port=9222"
     $ out-url http://localhost:3000 --json
     $ ourl --repo
     $ ourl https://github.com --wait
@@ -49,25 +51,28 @@ const readStdin = () => new Promise((resolve) => {
     resolve('');
     return;
   }
+
   let data = '';
   process.stdin.setEncoding('utf8');
-  process.stdin.on('data', (chunk) => {
-    data += chunk;
+
+  process.stdin.on('readable', () => {
+    let chunk;
+    // eslint-disable-next-line no-cond-assign
+    while ((chunk = process.stdin.read()) !== null) {
+      data += chunk;
+    }
   });
+
   process.stdin.on('end', () => {
     resolve(data.trim());
   });
+
   process.stdin.on('error', () => {
     resolve('');
   });
 });
 
 const run = async () => {
-  if (args.includes('-h') || args.includes('--help')) {
-    showHelp();
-    process.exit(0);
-  }
-
   if (args.includes('-v') || args.includes('--version')) {
     if (json) {
       outputJson({ version: pkg.version });
@@ -75,6 +80,11 @@ const run = async () => {
       // eslint-disable-next-line no-console
       console.log(pkg.version);
     }
+    process.exit(0);
+  }
+
+  if (args.includes('-h') || args.includes('--help')) {
+    showHelp();
     process.exit(0);
   }
 
@@ -88,7 +98,28 @@ const run = async () => {
     app = args[appIndex + 1];
   }
 
-  let url = args.find((arg, idx) => !arg.startsWith('-') && (appIndex === -1 || idx !== appIndex + 1));
+  let browserArgsIndex = args.indexOf('--browser-args');
+  if (browserArgsIndex === -1) {
+    browserArgsIndex = args.indexOf('--args');
+  }
+  let browserArgs = null;
+  if (browserArgsIndex !== -1 && args[browserArgsIndex + 1]) {
+    browserArgs = args[browserArgsIndex + 1];
+  } else {
+    const inlineBrowserArg = args.find((arg) => (
+      arg.startsWith('--browser-args=') || arg.startsWith('--args=')
+    ));
+    if (inlineBrowserArg) {
+      const prefix = inlineBrowserArg.startsWith('--browser-args=') ? '--browser-args=' : '--args=';
+      browserArgs = inlineBrowserArg.slice(prefix.length);
+    }
+  }
+
+  let url = args.find((arg, idx) => (
+    !arg.startsWith('-')
+    && (appIndex === -1 || idx !== appIndex + 1)
+    && (browserArgsIndex === -1 || idx !== browserArgsIndex + 1)
+  ));
 
   if (args.includes('--repo')) {
     url = open.getGitRepoUrl();
@@ -131,6 +162,7 @@ const run = async () => {
       wait,
       app,
       incognito,
+      browserArgs,
       fallback: fallbackHandler,
     });
 
