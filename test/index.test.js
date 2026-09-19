@@ -129,5 +129,17 @@ describe('out-url CLI', () => {
     const output = execFileSync(process.execPath, [cliPath, '--help'], { encoding: 'utf8' });
     assert.match(output, /Usage:/);
     assert.match(output, /--wait/);
+    assert.match(output, /<command> \| out-url/);
+  });
+
+  it('exits with error and shows help when stdin is empty and no args given', () => {
+    assert.throws(
+      () => execFileSync(process.execPath, [cliPath], { input: '', stdio: 'pipe' }),
+      (err) => {
+        assert.strictEqual(err.status, 1);
+        assert.match(err.stdout.toString(), /Usage:/);
+        return true;
+      },
+    );
   });
 });
