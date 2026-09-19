@@ -34,6 +34,10 @@ bunx ourl https://github.com/azhar22k
 
 # Wait for browser process to terminate
 npx out-url https://github.com/azhar22k --wait
+
+# Pipe URL from other commands (STDIN)
+git remote get-url origin | npx out-url
+echo "https://github.com/azhar22k" | bunx ourl
 ```
 
 ## API Usage
