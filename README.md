@@ -67,6 +67,10 @@ npx out-url http://localhost:3000 --dry-run --json
 # Machine-readable JSON output for AI agents and scripts
 npx out-url http://localhost:3000 --json
 
+# Validate and sanitize URL without launching browser
+npx out-url https://github.com --validate
+npx out-url https://github.com --validate --json
+
 # Print LLM Function Calling tool definition schema (OpenAI, Anthropic, Gemini)
 npx out-url --schema
 npx out-url --schema=anthropic
@@ -118,6 +122,7 @@ Add to `.cursor/mcp.json` in your workspace or global settings:
   - `app` *(string, optional)*: Browser alias (`chrome`, `firefox`, `edge`, `safari`, `brave`).
   - `incognito` *(boolean, optional)*: Private browsing mode.
   - `browserArgs` *(string, optional)*: Custom flags (e.g. `--remote-debugging-port=9222`).
+  - `validate` *(boolean, optional)*: Validate and sanitize URL against dangerous protocols before launching.
 
 ### Machine-Readable JSON Output (`--json`)
 AI agents and scripts can inspect the exact launch status and process ID without parsing human terminal output:
@@ -245,6 +250,44 @@ const geminiModel = genAI.getGenerativeModel({
 });
 ```
 
+### Target URL Validation & Security Sanitization (`open.validateUrl()` / `--validate`)
+
+Autonomous AI agents (Claude, Cursor, Copilot, LangChain, Vercel AI SDK) frequently parse and generate URLs from untrusted model completions, prompt injections, or scraped web pages. If an agent executes an untrusted input, malicious pseudo-protocols (`javascript:`, `vbscript:`, `data:`) can trigger severe security vulnerabilities or shell execution bugs.
+
+`out-url` provides zero-dependency URL validation and security sanitization out of the box:
+
+#### CLI URL Validation
+```bash
+# Validate URL without opening (exits 0 on valid)
+npx out-url https://github.com/azhar22k --validate
+# [out-url] Valid target: https://github.com/azhar22k (https:)
+
+# Machine-readable JSON output for AI agent pipelines
+npx out-url https://github.com/azhar22k --validate --json
+# {"status":"valid","valid":true,"target":"https://github.com/azhar22k","url":"https://github.com/azhar22k","protocol":"https:","isLocal":false}
+
+# Blocks dangerous pseudo-protocols (exits 1)
+npx out-url "javascript:alert(1)" --validate --json
+# {"status":"invalid","valid":false,"target":"javascript:alert(1)","protocol":"javascript:","error":"Dangerous or unsupported protocol: javascript:"}
+```
+
+#### In Node.js / TypeScript
+```javascript
+const { open, validateUrl } = require('out-url');
+
+// 1. Standalone URL check
+const check = validateUrl('https://example.com');
+console.log(check.valid);    // true
+console.log(check.protocol); // 'https:'
+
+const dangerous = validateUrl('javascript:alert(1)');
+console.log(dangerous.valid); // false
+console.log(dangerous.error); // 'Dangerous or unsupported protocol: javascript:'
+
+// 2. Safe opening: automatically reject invalid or dangerous targets
+await open('https://github.com/azhar22k', { validate: true });
+```
+
 ## API Usage
 
 ### Basic Example
@@ -286,6 +329,9 @@ await open('http://localhost:3000', {
 
 // Dry-run command simulation (no process spawned):
 const preview = await open('http://localhost:3000', { dryRun: true });
+
+// Validate and sanitize URL before opening (rejects dangerous protocols):
+await open('https://github.com/azhar22k', { validate: true });
 
 // Gracefully handle headless/CI environments (e.g. Docker, SSH):
 await open('https://github.com/azhar22k', { fallback: true });

@@ -2,9 +2,27 @@ const { spawn, execFileSync } = require('child_process');
 const os = require('os');
 const { existsSync } = require('fs');
 const { resolve: pathResolve } = require('path');
-const { pathToFileURL } = require('url');
+const { pathToFileURL, URL } = require('url');
 const readline = require('readline');
 const pkg = require('./package.json');
+
+const DANGEROUS_PROTOCOLS = new Set([
+  // eslint-disable-next-line no-script-url
+  'javascript:',
+  'vbscript:',
+  'data:',
+  'about:',
+  'blob:',
+]);
+
+const DEFAULT_ALLOWED_PROTOCOLS = [
+  'http:',
+  'https:',
+  'file:',
+  'ftp:',
+  'mailto:',
+  'tel:',
+];
 
 const isWsl = () => {
   if (process.platform !== 'linux') return false;
@@ -17,6 +35,116 @@ const resolveTarget = (target) => {
     return pathToFileURL(pathResolve(target)).href;
   }
   return target;
+};
+
+const validateUrl = (target, options = {}) => {
+  if (typeof target !== 'string' || !target.trim()) {
+    return {
+      valid: false,
+      target,
+      error: 'Target must be a non-empty string.',
+    };
+  }
+
+  const trimmed = target.trim();
+  const allowLocal = options.allowLocal !== false;
+  const allowedProtocols = options.allowedProtocols || DEFAULT_ALLOWED_PROTOCOLS;
+
+  const schemeMatch = trimmed.match(/^([a-zA-Z][a-zA-Z0-9+.-]*):/);
+  if (schemeMatch) {
+    const scheme = schemeMatch[1].toLowerCase();
+    const fullScheme = `${scheme}:`;
+    if (DANGEROUS_PROTOCOLS.has(fullScheme)) {
+      return {
+        valid: false,
+        target: trimmed,
+        protocol: fullScheme,
+        error: `Dangerous or unsupported protocol: ${fullScheme}`,
+      };
+    }
+  }
+
+  if (existsSync(trimmed)) {
+    if (!allowLocal) {
+      return {
+        valid: false,
+        target: trimmed,
+        error: 'Local file targets are not permitted by options.',
+      };
+    }
+    const fileUrl = pathToFileURL(pathResolve(trimmed)).href;
+    return {
+      valid: true,
+      target: trimmed,
+      url: fileUrl,
+      protocol: 'file:',
+      isLocal: true,
+    };
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    const protocol = parsed.protocol.toLowerCase();
+
+    if (DANGEROUS_PROTOCOLS.has(protocol)) {
+      return {
+        valid: false,
+        target: trimmed,
+        protocol,
+        error: `Dangerous or unsupported protocol: ${protocol}`,
+      };
+    }
+
+    if (!allowedProtocols.includes(protocol)) {
+      return {
+        valid: false,
+        target: trimmed,
+        protocol,
+        error: `Protocol "${protocol}" is not allowed. Allowed protocols: ${allowedProtocols.join(', ')}`,
+      };
+    }
+
+    if ((protocol === 'http:' || protocol === 'https:') && !parsed.hostname) {
+      return {
+        valid: false,
+        target: trimmed,
+        protocol,
+        error: 'Web URLs must include a valid hostname.',
+      };
+    }
+
+    return {
+      valid: true,
+      target: trimmed,
+      url: parsed.href,
+      protocol,
+      isLocal: protocol === 'file:',
+    };
+  } catch (err) {
+    if (allowLocal) {
+      const looksLikePath = trimmed.startsWith('./')
+        || trimmed.startsWith('../')
+        || trimmed.startsWith('/')
+        || trimmed.startsWith('~')
+        || /^[a-zA-Z]:[\\/]/.test(trimmed);
+
+      if (looksLikePath) {
+        return {
+          valid: true,
+          target: trimmed,
+          url: pathToFileURL(pathResolve(trimmed)).href,
+          protocol: 'file:',
+          isLocal: true,
+        };
+      }
+    }
+
+    return {
+      valid: false,
+      target: trimmed,
+      error: `Invalid URL format: ${err.message}`,
+    };
+  }
 };
 
 const parseGitRemoteUrl = (remoteUrl) => {
@@ -157,6 +285,15 @@ const formatUrl = (url, command) => {
 };
 
 const open = (url, options = {}) => new Promise((resolve, reject) => {
+  if (options.validate) {
+    const validateOpts = typeof options.validate === 'object' ? options.validate : {};
+    const validation = validateUrl(url, validateOpts);
+    if (!validation.valid) {
+      reject(new Error(validation.error || `Invalid target URL: ${url}`));
+      return;
+    }
+  }
+
   const target = resolveTarget(url);
   const [command, baseArgs = []] = getCommands(options);
   const formattedUrl = formatUrl(target, command);
@@ -236,6 +373,10 @@ const TOOL_SCHEMA_PROPERTIES = {
   fallback: {
     type: 'boolean',
     description: 'Gracefully handle headless/CI environments without a display server.',
+  },
+  validate: {
+    type: 'boolean',
+    description: 'Validate and sanitize URL to block dangerous protocols (e.g. javascript:) before opening.',
   },
 };
 
@@ -376,6 +517,10 @@ const startMcpServer = (serverOptions = {}) => {
                     type: 'string',
                     description: 'Additional flags or arguments to pass to the browser (e.g. "--remote-debugging-port=9222").',
                   },
+                  validate: {
+                    type: 'boolean',
+                    description: 'Validate and sanitize URL to block dangerous protocols before opening.',
+                  },
                 },
                 required: ['url'],
               },
@@ -419,6 +564,7 @@ const startMcpServer = (serverOptions = {}) => {
           app: toolArgs.app,
           incognito: toolArgs.incognito,
           browserArgs: toolArgs.browserArgs,
+          validate: toolArgs.validate !== undefined ? toolArgs.validate : true,
         });
         const pidInfo = child && child.pid ? ` (PID: ${child.pid})` : '';
         send({
@@ -472,5 +618,6 @@ open.normalizeBrowserArgs = normalizeBrowserArgs;
 open.toolDefinition = toolDefinition;
 open.getToolDefinition = getToolDefinition;
 open.startMcpServer = startMcpServer;
+open.validateUrl = validateUrl;
 
 module.exports = open;

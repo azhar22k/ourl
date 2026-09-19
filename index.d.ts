@@ -38,6 +38,36 @@ export interface OpenOptions {
    * @default false
    */
   fallback?: boolean | ((url: string) => void);
+
+  /**
+   * Validate and sanitize the target URL before opening.
+   * Blocks dangerous protocols (e.g. javascript:) and malformed URLs.
+   * @default false
+   */
+  validate?: boolean | ValidateUrlOptions;
+}
+
+export interface ValidateUrlOptions {
+  /**
+   * Allowed URI protocols (e.g. ['http:', 'https:', 'file:']).
+   * @default ['http:', 'https:', 'file:', 'ftp:', 'mailto:', 'tel:']
+   */
+  allowedProtocols?: string[];
+
+  /**
+   * Allow local filesystem paths and relative paths.
+   * @default true
+   */
+  allowLocal?: boolean;
+}
+
+export interface ValidationResult {
+  valid: boolean;
+  target: string;
+  url?: string;
+  protocol?: string | null;
+  isLocal?: boolean;
+  error?: string;
 }
 
 export interface DryRunResult {
@@ -83,11 +113,13 @@ declare namespace open {
   export const toolDefinition: ToolDefinition;
   export function getToolDefinition(options?: GetToolDefinitionOptions): ToolDefinition;
   export function startMcpServer(options?: McpServerOptions): McpServerInstance;
+  export function validateUrl(target: string, options?: ValidateUrlOptions): ValidationResult;
 }
 
 export const toolDefinition: ToolDefinition;
 export const getToolDefinition: (options?: GetToolDefinitionOptions) => ToolDefinition;
 export const startMcpServer: (options?: McpServerOptions) => McpServerInstance;
+export const validateUrl: (target: string, options?: ValidateUrlOptions) => ValidationResult;
 
 export { open };
 export default open;
