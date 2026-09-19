@@ -33,6 +33,18 @@ export interface OpenOptions {
   fallback?: boolean | ((url: string) => void);
 }
 
+export interface ToolDefinition {
+  [key: string]: unknown;
+}
+
+export interface GetToolDefinitionOptions {
+  /**
+   * Tool definition schema format.
+   * @default 'openai'
+   */
+  format?: 'openai' | 'anthropic' | 'claude' | 'gemini';
+}
+
 declare function open(url: string, options?: OpenOptions): Promise<ChildProcess | null>;
 
 declare namespace open {
@@ -41,7 +53,13 @@ declare namespace open {
   export function getGitRepoUrl(remote?: string): string | null;
   export function resolveTarget(target: string): string;
   export function normalizeBrowserArgs(browserArgs?: string[] | string): string[];
+  export const toolDefinition: ToolDefinition;
+  export function getToolDefinition(options?: GetToolDefinitionOptions): ToolDefinition;
 }
+
+export const toolDefinition: ToolDefinition;
+export const getToolDefinition: (options?: GetToolDefinitionOptions) => ToolDefinition;
 
 export { open };
 export default open;
+

@@ -30,6 +30,7 @@ const showHelp = () => {
     --wait                        Wait for the opened process to terminate
     --fallback                    Gracefully print URL in headless/CI environments without display
     --json                        Output result as machine-readable JSON for agents/scripts
+    --schema[=format]             Output LLM tool definition schema (openai, anthropic, gemini)
     -v, --version                 Display version
     -h, --help                    Display this help message
 
@@ -39,6 +40,7 @@ const showHelp = () => {
     $ out-url http://localhost:3000 -i
     $ out-url http://localhost:3000 --app chrome --browser-args="--remote-debugging-port=9222"
     $ out-url http://localhost:3000 --json
+    $ out-url --schema
     $ ourl --repo
     $ ourl https://github.com --wait
     $ ourl https://github.com --fallback
@@ -73,6 +75,22 @@ const readStdin = () => new Promise((resolve) => {
 });
 
 const run = async () => {
+  if (args.includes('-h') || args.includes('--help')) {
+    showHelp();
+    process.exit(0);
+  }
+
+  const schemaArg = args.find((arg) => arg === '--schema' || arg.startsWith('--schema='));
+  if (schemaArg) {
+    const format = schemaArg.startsWith('--schema=')
+      ? schemaArg.slice('--schema='.length)
+      : 'openai';
+    const schema = open.getToolDefinition({ format });
+    // eslint-disable-next-line no-console
+    console.log(JSON.stringify(schema, null, 2));
+    process.exit(0);
+  }
+
   if (args.includes('-v') || args.includes('--version')) {
     if (json) {
       outputJson({ version: pkg.version });
@@ -80,11 +98,6 @@ const run = async () => {
       // eslint-disable-next-line no-console
       console.log(pkg.version);
     }
-    process.exit(0);
-  }
-
-  if (args.includes('-h') || args.includes('--help')) {
-    showHelp();
     process.exit(0);
   }
 
