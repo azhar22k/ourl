@@ -67,11 +67,53 @@ npx out-url http://localhost:3000 --json
 npx out-url --schema
 npx out-url --schema=anthropic
 npx out-url --schema=gemini
+
+# Run as Model Context Protocol (MCP) server for Claude Desktop and Cursor
+npx out-url --mcp
 ```
 
 ## AI Agents & Automation
 
 `out-url` is built from the ground up to be agent-ready for AI coding assistants (Cursor, Claude, Antigravity, Copilot), LLM frameworks, and automated scripts.
+
+### Native Model Context Protocol (MCP) Server (`--mcp`)
+
+`out-url` includes a zero-dependency, native **Model Context Protocol (MCP)** server running over standard I/O (stdio). This allows **Claude Desktop**, **Cursor**, **Zed**, and other MCP-compatible AI agents to open links, local documentation, test dashboards, and web applications on demand.
+
+#### Claude Desktop Configuration
+Add to your `claude_desktop_config.json` (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows):
+
+```json
+{
+  "mcpServers": {
+    "out-url": {
+      "command": "npx",
+      "args": ["-y", "out-url", "--mcp"]
+    }
+  }
+}
+```
+
+#### Cursor Configuration
+Add to `.cursor/mcp.json` in your workspace or global settings:
+
+```json
+{
+  "mcpServers": {
+    "out-url": {
+      "command": "npx",
+      "args": ["-y", "out-url", "--mcp"]
+    }
+  }
+}
+```
+
+#### Exposed MCP Tools
+- **`open_in_browser`**: Opens a URL, local file, or directory in the desktop browser.
+  - `url` *(string, required)*: Target URL or path (e.g. `http://localhost:3000`, `./coverage/index.html`).
+  - `app` *(string, optional)*: Browser alias (`chrome`, `firefox`, `edge`, `safari`, `brave`).
+  - `incognito` *(boolean, optional)*: Private browsing mode.
+  - `browserArgs` *(string, optional)*: Custom flags (e.g. `--remote-debugging-port=9222`).
 
 ### Machine-Readable JSON Output (`--json`)
 AI agents and scripts can inspect the exact launch status and process ID without parsing human terminal output:
