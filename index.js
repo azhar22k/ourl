@@ -48,17 +48,68 @@ const isHeadless = () => {
   return !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY;
 };
 
+const BROWSER_ALIASES = {
+  darwin: {
+    chrome: 'Google Chrome',
+    firefox: 'Firefox',
+    edge: 'Microsoft Edge',
+    safari: 'Safari',
+    brave: 'Brave Browser',
+  },
+  win32: {
+    chrome: 'chrome',
+    firefox: 'firefox',
+    edge: 'msedge',
+    brave: 'brave',
+  },
+  linux: {
+    chrome: 'google-chrome',
+    firefox: 'firefox',
+    edge: 'microsoft-edge',
+    brave: 'brave-browser',
+  },
+};
+
+const getIncognitoFlag = (browser) => {
+  const lower = (browser || '').toLowerCase();
+  if (lower.includes('firefox')) return '--private-window';
+  if (lower.includes('edge') || lower.includes('msedge')) return '--inprivate';
+  return '--incognito';
+};
+
 const getCommands = (options = {}) => {
   const { platform } = process;
+  const platformAliases = BROWSER_ALIASES[platform];
+  const app = options.app
+    ? ((platformAliases && platformAliases[options.app.toLowerCase()]) || options.app)
+    : null;
+  const incognito = Boolean(options.incognito);
 
   if (platform === 'darwin') {
-    return ['open', options.wait ? ['-W'] : []];
+    const args = [];
+    if (options.wait) args.push('-W');
+    if (app) {
+      args.push('-a', app);
+      if (incognito) {
+        args.push('-n', '--args', getIncognitoFlag(app));
+      }
+    } else if (incognito) {
+      args.push('-a', 'Google Chrome', '-n', '--args', '--incognito');
+    }
+    return ['open', args];
   }
 
   if (platform === 'win32' || isWsl()) {
     const startArgs = ['/c', 'start', '""'];
     if (options.wait) {
       startArgs.push('/wait');
+    }
+    const winApp = app || (incognito ? 'chrome' : null);
+    if (winApp) {
+      startArgs.push(winApp);
+      if (incognito) {
+        startArgs.push(getIncognitoFlag(winApp));
+      }
     }
     return ['cmd.exe', startArgs];
   }
@@ -68,6 +119,12 @@ const getCommands = (options = {}) => {
   }
 
   if (platform === 'android' || platform === 'linux') {
+    const linuxApp = app || (incognito ? 'google-chrome' : null);
+    if (linuxApp) {
+      const args = [];
+      if (incognito) args.push(getIncognitoFlag(linuxApp));
+      return [linuxApp, args];
+    }
     return ['xdg-open', []];
   }
 

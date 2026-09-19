@@ -99,6 +99,37 @@ describe('out-url core', () => {
       assert.deepStrictEqual(args, []);
     });
 
+    it('resolves darwin open with app and incognito options', () => {
+      setPlatform('darwin');
+      const [cmd, args] = open.getCommands({ app: 'firefox' });
+      assert.strictEqual(cmd, 'open');
+      assert.deepStrictEqual(args, ['-a', 'Firefox']);
+
+      const [cmd2, args2] = open.getCommands({ app: 'chrome', incognito: true });
+      assert.strictEqual(cmd2, 'open');
+      assert.deepStrictEqual(args2, ['-a', 'Google Chrome', '-n', '--args', '--incognito']);
+    });
+
+    it('resolves win32 cmd.exe with app and incognito options', () => {
+      setPlatform('win32');
+      const [cmd, args] = open.getCommands({ app: 'firefox' });
+      assert.strictEqual(cmd, 'cmd.exe');
+      assert.deepStrictEqual(args, ['/c', 'start', '""', 'firefox']);
+
+      const [cmd2, args2] = open.getCommands({ incognito: true });
+      assert.strictEqual(cmd2, 'cmd.exe');
+      assert.deepStrictEqual(args2, ['/c', 'start', '""', 'chrome', '--incognito']);
+    });
+
+    it('resolves linux with app and incognito options', () => {
+      setPlatform('linux');
+      delete process.env.WSL_DISTRO_NAME;
+      delete process.env.WSL_INTEROP;
+      const [cmd, args] = open.getCommands({ app: 'firefox', incognito: true });
+      assert.strictEqual(cmd, 'firefox');
+      assert.deepStrictEqual(args, ['--private-window']);
+    });
+
     it('throws on unsupported platform', () => {
       setPlatform('sunos');
       assert.throws(() => open.getCommands(), /Platform sunos isn't supported\./);
@@ -223,6 +254,8 @@ describe('out-url CLI', () => {
     assert.match(output, /Usage:/);
     assert.match(output, /--wait/);
     assert.match(output, /--repo/);
+    assert.match(output, /--app/);
+    assert.match(output, /--incognito/);
     assert.match(output, /--fallback/);
     assert.match(output, /<command> \| out-url/);
   });
