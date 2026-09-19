@@ -8,6 +8,18 @@ export interface OpenOptions {
   wait?: boolean;
 
   /**
+   * Target a specific browser or application.
+   * Built-in aliases: 'chrome', 'firefox', 'edge', 'safari', 'brave', or custom app name/path.
+   */
+  app?: string;
+
+  /**
+   * Open the target in private / incognito browsing mode.
+   * @default false
+   */
+  incognito?: boolean;
+
+  /**
    * Gracefully handle headless/CI environments without a display server.
    * If true, logs the URL. Can also be a custom callback `(url: string) => void`.
    * @default false
@@ -19,11 +31,9 @@ declare function open(url: string, options?: OpenOptions): Promise<ChildProcess 
 
 declare namespace open {
   export function isHeadless(): boolean;
-}
-
-declare namespace open {
   export function parseGitRemoteUrl(remoteUrl: string): string | null;
   export function getGitRepoUrl(remote?: string): string | null;
+  export function resolveTarget(target: string): string;
 }
 
 export { open };

@@ -41,6 +41,12 @@ npx out-url ./coverage/index.html
 # Reveal current directory
 npx out-url .
 
+# Open in specific browser (e.g. firefox, chrome, edge, safari)
+npx out-url http://localhost:3000 --app firefox
+
+# Open in incognito / private browsing mode
+npx out-url http://localhost:3000 -i
+
 # Wait for browser process to terminate
 npx out-url https://github.com/azhar22k --wait
 
@@ -78,6 +84,12 @@ await open('https://github.com/azhar22k');
 
 // Wait for browser/app process to close before resolving:
 await open('https://github.com/azhar22k', { wait: true });
+
+// Open in a specific browser:
+await open('http://localhost:3000', { app: 'firefox' });
+
+// Open in private/incognito mode:
+await open('http://localhost:3000', { incognito: true });
 
 // Gracefully handle headless/CI environments (e.g. Docker, SSH):
 await open('https://github.com/azhar22k', { fallback: true });

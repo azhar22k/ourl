@@ -17,14 +17,18 @@ const showHelp = () => {
     $ <command> | out-url
 
   Options:
-    --repo         Open the current git repository's remote URL
-    --wait         Wait for the opened process to terminate
-    --fallback     Gracefully print URL in headless/CI environments without display
-    -v, --version  Display version
-    -h, --help     Display this help message
+    --app <browser> Open in specific browser (e.g. chrome, firefox, edge, safari)
+    -i, --incognito Open in private/incognito browsing mode
+    --repo          Open the current git repository's remote URL
+    --wait          Wait for the opened process to terminate
+    --fallback      Gracefully print URL in headless/CI environments without display
+    -v, --version   Display version
+    -h, --help      Display this help message
 
   Examples:
     $ out-url https://github.com
+    $ out-url http://localhost:3000 --app firefox
+    $ out-url http://localhost:3000 -i
     $ ourl --repo
     $ ourl https://github.com --wait
     $ ourl https://github.com --fallback
@@ -64,7 +68,15 @@ const run = async () => {
 
   const wait = args.includes('--wait');
   const fallback = args.includes('--fallback');
-  let url = args.find((arg) => !arg.startsWith('-'));
+  const incognito = args.includes('-i') || args.includes('--incognito');
+
+  const appIndex = args.indexOf('--app');
+  let app = null;
+  if (appIndex !== -1 && args[appIndex + 1] && !args[appIndex + 1].startsWith('-')) {
+    app = args[appIndex + 1];
+  }
+
+  let url = args.find((arg, idx) => !arg.startsWith('-') && (appIndex === -1 || idx !== appIndex + 1));
 
   if (args.includes('--repo')) {
     url = open.getGitRepoUrl();
@@ -85,7 +97,12 @@ const run = async () => {
   }
 
   try {
-    await open(url, { wait, fallback });
+    await open(url, {
+      wait,
+      app,
+      incognito,
+      fallback,
+    });
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error(err);
