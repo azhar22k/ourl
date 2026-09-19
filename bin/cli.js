@@ -29,6 +29,7 @@ const showHelp = () => {
     --repo                        Open the current git repository's remote URL
     --wait                        Wait for the opened process to terminate
     --fallback                    Gracefully print URL in headless/CI environments without display
+    --dry-run                     Simulate command resolution without launching process
     --json                        Output result as machine-readable JSON for agents/scripts
     --schema[=format]             Output LLM tool definition schema (openai, anthropic, gemini)
     --mcp                         Run as Model Context Protocol (MCP) server over stdio
@@ -40,6 +41,8 @@ const showHelp = () => {
     $ out-url http://localhost:3000 --app firefox
     $ out-url http://localhost:3000 -i
     $ out-url http://localhost:3000 --app chrome --browser-args="--remote-debugging-port=9222"
+    $ out-url http://localhost:3000 --dry-run
+    $ out-url http://localhost:3000 --dry-run --json
     $ out-url http://localhost:3000 --json
     $ out-url --schema
     $ out-url --mcp
@@ -111,6 +114,7 @@ const run = async () => {
   const wait = args.includes('--wait');
   const fallback = args.includes('--fallback');
   const incognito = args.includes('-i') || args.includes('--incognito');
+  const dryRun = args.includes('--dry-run');
 
   const appIndex = args.indexOf('--app');
   let app = null;
@@ -178,13 +182,34 @@ const run = async () => {
       fallbackHandler = true;
     }
 
-    const child = await open(url, {
+    const result = await open(url, {
       wait,
       app,
       incognito,
       browserArgs,
+      dryRun,
       fallback: fallbackHandler,
     });
+
+    if (dryRun) {
+      if (json) {
+        outputJson({
+          status: 'dry_run',
+          command: result.command,
+          args: result.args,
+          target: result.target,
+          resolvedTarget: result.resolvedTarget,
+          formattedUrl: result.formattedUrl,
+          platform: result.platform,
+        });
+      } else {
+        // eslint-disable-next-line no-console
+        console.log(`[out-url dry-run] Would execute: ${result.command} ${result.args.join(' ')}`);
+      }
+      return;
+    }
+
+    const child = result;
 
     if (json) {
       if (isFallback || child === null) {
