@@ -20,6 +20,12 @@ export interface OpenOptions {
   incognito?: boolean;
 
   /**
+   * Additional command-line flags or arguments to pass to the browser.
+   * Useful for AI agents and automation scripts (e.g. `['--remote-debugging-port=9222']` or `'--remote-debugging-port=9222'`).
+   */
+  browserArgs?: string[] | string;
+
+  /**
    * Gracefully handle headless/CI environments without a display server.
    * If true, logs the URL. Can also be a custom callback `(url: string) => void`.
    * @default false
@@ -34,6 +40,7 @@ declare namespace open {
   export function parseGitRemoteUrl(remoteUrl: string): string | null;
   export function getGitRepoUrl(remote?: string): string | null;
   export function resolveTarget(target: string): string;
+  export function normalizeBrowserArgs(browserArgs?: string[] | string): string[];
 }
 
 export { open };
