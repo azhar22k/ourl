@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.0](https://github.com/azhar22k/ourl/compare/out-url-v1.3.0...out-url-v1.4.0) (2026-09-19)
+
+
+### Features
+
+* add headless and CI fallback support ([#31](https://github.com/azhar22k/ourl/issues/31)) ([a8617fc](https://github.com/azhar22k/ourl/commit/a8617fc1a8f893902c41dec54515fed492d8deb1))
+* add package exports field for modern ESM and bundler resolution ([#26](https://github.com/azhar22k/ourl/issues/26)) ([53e2017](https://github.com/azhar22k/ourl/commit/53e2017f3b575262b942f6282d73771b9afea750))
+* add target browser selection and incognito mode ([#32](https://github.com/azhar22k/ourl/issues/32)) ([11c8bb3](https://github.com/azhar22k/ourl/commit/11c8bb3976b731fb357a6c590d4611fb5ccab4e5))
+* auto-resolve local file and directory paths to file URLs ([#29](https://github.com/azhar22k/ourl/issues/29)) ([25bb2af](https://github.com/azhar22k/ourl/commit/25bb2afb0a842a3ad42b2b1284e20e170df68c31))
+* **cli:** add --repo flag to open current git repository ([#30](https://github.com/azhar22k/ourl/issues/30)) ([dca5221](https://github.com/azhar22k/ourl/commit/dca52219de7dd6d9e1a6bd80b0f967e3b1f37180))
+* **cli:** add STDIN pipe support ([#27](https://github.com/azhar22k/ourl/issues/27)) ([845f390](https://github.com/azhar22k/ourl/commit/845f3909952ffb88237d32ce9795b8b819082f02))
+
 ## [1.3.0](https://github.com/azhar22k/ourl/compare/out-url-v1.2.2...out-url-v1.3.0) (2026-09-14)
 
 
