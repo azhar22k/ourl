@@ -4,6 +4,12 @@ const { open } = require('../index');
 const pkg = require('../package.json');
 
 const args = process.argv.slice(2);
+const json = args.includes('--json');
+
+const outputJson = (data) => {
+  // eslint-disable-next-line no-console
+  console.log(JSON.stringify(data));
+};
 
 const showHelp = () => {
   // eslint-disable-next-line no-console
@@ -22,6 +28,7 @@ const showHelp = () => {
     --repo          Open the current git repository's remote URL
     --wait          Wait for the opened process to terminate
     --fallback      Gracefully print URL in headless/CI environments without display
+    --json          Output result as machine-readable JSON for agents/scripts
     -v, --version   Display version
     -h, --help      Display this help message
 
@@ -29,6 +36,7 @@ const showHelp = () => {
     $ out-url https://github.com
     $ out-url http://localhost:3000 --app firefox
     $ out-url http://localhost:3000 -i
+    $ out-url http://localhost:3000 --json
     $ ourl --repo
     $ ourl https://github.com --wait
     $ ourl https://github.com --fallback
@@ -61,8 +69,12 @@ const run = async () => {
   }
 
   if (args.includes('-v') || args.includes('--version')) {
-    // eslint-disable-next-line no-console
-    console.log(pkg.version);
+    if (json) {
+      outputJson({ version: pkg.version });
+    } else {
+      // eslint-disable-next-line no-console
+      console.log(pkg.version);
+    }
     process.exit(0);
   }
 
@@ -81,8 +93,12 @@ const run = async () => {
   if (args.includes('--repo')) {
     url = open.getGitRepoUrl();
     if (!url) {
-      // eslint-disable-next-line no-console
-      console.error('Error: Could not resolve git remote "origin". Are you in a git repository with an origin remote?');
+      if (json) {
+        outputJson({ status: 'error', message: 'Could not resolve git remote "origin".' });
+      } else {
+        // eslint-disable-next-line no-console
+        console.error('Error: Could not resolve git remote "origin". Are you in a git repository with an origin remote?');
+      }
       process.exit(1);
     }
   }
@@ -92,20 +108,57 @@ const run = async () => {
   }
 
   if (!url) {
-    showHelp();
+    if (json) {
+      outputJson({ status: 'error', message: 'No target or URL provided.' });
+    } else {
+      showHelp();
+    }
     process.exit(1);
   }
 
   try {
-    await open(url, {
+    let isFallback = false;
+    let fallbackHandler = fallback;
+    if (json && fallback) {
+      fallbackHandler = () => {
+        isFallback = true;
+      };
+    } else if (fallback) {
+      fallbackHandler = true;
+    }
+
+    const child = await open(url, {
       wait,
       app,
       incognito,
-      fallback,
+      fallback: fallbackHandler,
     });
+
+    if (json) {
+      if (isFallback || child === null) {
+        outputJson({
+          status: 'headless_fallback',
+          target: url,
+          resolvedTarget: open.resolveTarget(url),
+          message: 'Headless environment detected. Display not available.',
+        });
+      } else {
+        outputJson({
+          status: 'success',
+          target: url,
+          resolvedTarget: open.resolveTarget(url),
+          pid: child ? child.pid : null,
+          platform: process.platform,
+        });
+      }
+    }
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error(err);
+    if (json) {
+      outputJson({ status: 'error', message: err.message });
+    } else {
+      // eslint-disable-next-line no-console
+      console.error(err);
+    }
     process.exit(1);
   }
 };

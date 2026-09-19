@@ -37,7 +37,12 @@
     "macos",
     "android",
     "windows",
-    "linux"
+    "linux",
+    "wsl",
+    "agent",
+    "ai-agent",
+    "automation",
+    "cli"
   ],
   "author": "Azhar Khan",
   "license": "MIT",
