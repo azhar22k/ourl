@@ -30,6 +30,7 @@ const showHelp = () => {
     --wait                        Wait for the opened process to terminate
     --fallback                    Gracefully print URL in headless/CI environments without display
     --dry-run                     Simulate command resolution without launching process
+    --validate                    Validate and sanitize target URL without launching browser
     --json                        Output result as machine-readable JSON for agents/scripts
     --schema[=format]             Output LLM tool definition schema (openai, anthropic, gemini)
     --mcp                         Run as Model Context Protocol (MCP) server over stdio
@@ -43,6 +44,7 @@ const showHelp = () => {
     $ out-url http://localhost:3000 --app chrome --browser-args="--remote-debugging-port=9222"
     $ out-url http://localhost:3000 --dry-run
     $ out-url http://localhost:3000 --dry-run --json
+    $ out-url https://github.com --validate
     $ out-url http://localhost:3000 --json
     $ out-url --schema
     $ out-url --mcp
@@ -115,6 +117,7 @@ const run = async () => {
   const fallback = args.includes('--fallback');
   const incognito = args.includes('-i') || args.includes('--incognito');
   const dryRun = args.includes('--dry-run');
+  const validate = args.includes('--validate');
 
   const appIndex = args.indexOf('--app');
   let app = null;
@@ -171,6 +174,23 @@ const run = async () => {
     process.exit(1);
   }
 
+  if (validate && !args.includes('--open')) {
+    const result = open.validateUrl(url);
+    if (json) {
+      outputJson({
+        status: result.valid ? 'valid' : 'invalid',
+        ...result,
+      });
+    } else if (result.valid) {
+      // eslint-disable-next-line no-console
+      console.log(`[out-url] Valid target: ${result.target}${result.protocol ? ` (${result.protocol})` : ''}`);
+    } else {
+      // eslint-disable-next-line no-console
+      console.error(`[out-url error] ${result.error}`);
+    }
+    process.exit(result.valid ? 0 : 1);
+  }
+
   try {
     let isFallback = false;
     let fallbackHandler = fallback;
@@ -188,6 +208,7 @@ const run = async () => {
       incognito,
       browserArgs,
       dryRun,
+      validate: Boolean(validate),
       fallback: fallbackHandler,
     });
 

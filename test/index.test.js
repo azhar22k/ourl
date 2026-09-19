@@ -1,3 +1,4 @@
+/* eslint-disable no-script-url */
 const { describe, it, afterEach } = require('node:test');
 const assert = require('node:assert');
 const { execFileSync } = require('child_process');
@@ -332,6 +333,7 @@ describe('out-url core', () => {
       assert.ok(def.function.parameters.properties.app);
       assert.ok(def.function.parameters.properties.incognito);
       assert.ok(def.function.parameters.properties.dryRun);
+      assert.ok(def.function.parameters.properties.validate);
       assert.deepStrictEqual(def.function.parameters.required, ['url']);
     });
 
@@ -342,6 +344,7 @@ describe('out-url core', () => {
       assert.strictEqual(def.input_schema.type, 'object');
       assert.ok(def.input_schema.properties.url);
       assert.ok(def.input_schema.properties.dryRun);
+      assert.ok(def.input_schema.properties.validate);
       assert.deepStrictEqual(def.input_schema.required, ['url']);
     });
 
@@ -352,6 +355,7 @@ describe('out-url core', () => {
       assert.strictEqual(def.parameters.properties.url.type, 'STRING');
       assert.strictEqual(def.parameters.properties.incognito.type, 'BOOLEAN');
       assert.strictEqual(def.parameters.properties.dryRun.type, 'BOOLEAN');
+      assert.strictEqual(def.parameters.properties.validate.type, 'BOOLEAN');
       assert.deepStrictEqual(def.parameters.required, ['url']);
     });
   });
@@ -422,6 +426,7 @@ describe('out-url core', () => {
       const tool = response.result.tools.find((t) => t.name === 'open_in_browser');
       assert.ok(tool);
       assert.ok(tool.inputSchema.properties.url);
+      assert.ok(tool.inputSchema.properties.validate);
       server.close();
     });
 
@@ -511,6 +516,116 @@ describe('out-url core', () => {
       assert.strictEqual(response.error.code, -32601);
       server.close();
     });
+
+    it('rejects dangerous protocols like javascript: in tools/call', async () => {
+      const inStream = new PassThrough();
+      const outStream = new PassThrough();
+      const server = open.startMcpServer({ inStream, outStream });
+
+      let responseData = '';
+      outStream.on('data', (chunk) => {
+        responseData += chunk;
+      });
+
+      inStream.write(`${JSON.stringify({
+        jsonrpc: '2.0',
+        id: 7,
+        method: 'tools/call',
+        params: { name: 'open_in_browser', arguments: { url: 'javascript:alert(1)' } },
+      })}\n`);
+
+      await sleep(50);
+      const response = JSON.parse(responseData.trim());
+      assert.strictEqual(response.id, 7);
+      assert.strictEqual(response.result.isError, true);
+      assert.match(response.result.content[0].text, /Dangerous or unsupported protocol/);
+      server.close();
+    });
+  });
+
+  describe('validateUrl and options.validate', () => {
+    it('validates standard http and https URLs', () => {
+      const res1 = open.validateUrl('https://example.com');
+      assert.strictEqual(res1.valid, true);
+      assert.strictEqual(res1.protocol, 'https:');
+      assert.strictEqual(res1.url, 'https://example.com/');
+      assert.strictEqual(res1.isLocal, false);
+
+      const res2 = open.validateUrl('http://localhost:3000/path?query=1#hash');
+      assert.strictEqual(res2.valid, true);
+      assert.strictEqual(res2.protocol, 'http:');
+      assert.strictEqual(res2.url, 'http://localhost:3000/path?query=1#hash');
+    });
+
+    it('rejects dangerous protocols', () => {
+      const dangerousList = [
+        'javascript:alert(1)',
+        'JAVASCRIPT:void(0)',
+        'data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==',
+        'vbscript:msgbox(1)',
+        'about:blank',
+        'blob:https://example.com/uuid',
+      ];
+
+      dangerousList.forEach((dangerousUrl) => {
+        const res = open.validateUrl(dangerousUrl);
+        assert.strictEqual(res.valid, false);
+        assert.match(res.error, /Dangerous or unsupported protocol/);
+      });
+    });
+
+    it('rejects non-string and empty string targets', () => {
+      assert.strictEqual(open.validateUrl('').valid, false);
+      assert.strictEqual(open.validateUrl('   ').valid, false);
+      assert.strictEqual(open.validateUrl(null).valid, false);
+      assert.strictEqual(open.validateUrl(undefined).valid, false);
+      assert.strictEqual(open.validateUrl(12345).valid, false);
+    });
+
+    it('validates existing local files as file: protocol', () => {
+      const res = open.validateUrl('./package.json');
+      assert.strictEqual(res.valid, true);
+      assert.strictEqual(res.protocol, 'file:');
+      assert.strictEqual(res.isLocal, true);
+      assert.ok(res.url.startsWith('file://'));
+    });
+
+    it('rejects local files when allowLocal is false', () => {
+      const res = open.validateUrl('./package.json', { allowLocal: false });
+      assert.strictEqual(res.valid, false);
+      assert.match(res.error, /Local file targets are not permitted/);
+    });
+
+    it('enforces custom allowedProtocols list', () => {
+      const res = open.validateUrl('http://example.com', { allowedProtocols: ['https:'] });
+      assert.strictEqual(res.valid, false);
+      assert.match(res.error, /Protocol "http:" is not allowed/);
+
+      const resValid = open.validateUrl('https://example.com', { allowedProtocols: ['https:'] });
+      assert.strictEqual(resValid.valid, true);
+    });
+
+    it('rejects malformed URLs without hostname', () => {
+      const res = open.validateUrl('http://');
+      assert.strictEqual(res.valid, false);
+    });
+
+    it('rejects invalid non-URL random strings', () => {
+      const res = open.validateUrl('not a valid url or path');
+      assert.strictEqual(res.valid, false);
+    });
+
+    it('rejects in open() when options.validate is true and URL is dangerous', async () => {
+      await assert.rejects(
+        open('javascript:alert(1)', { validate: true }),
+        /Dangerous or unsupported protocol/,
+      );
+    });
+
+    it('passes in open() when options.validate is true and URL is valid', () => {
+      const validation = open.validateUrl('https://example.com', {});
+      assert.strictEqual(validation.valid, true);
+    });
   });
 
   describe('dryRun simulation mode', () => {
@@ -572,6 +687,7 @@ describe('out-url CLI', () => {
     assert.match(output, /--args/);
     assert.match(output, /--fallback/);
     assert.match(output, /--dry-run/);
+    assert.match(output, /--validate/);
     assert.match(output, /--json/);
     assert.match(output, /--schema/);
     assert.match(output, /--mcp/);
@@ -685,5 +801,59 @@ describe('out-url CLI', () => {
     assert.strictEqual(parsed.target, 'http://localhost:3000');
     assert.ok(parsed.args.includes('--remote-debugging-port=9222'));
     assert.strictEqual(parsed.platform, process.platform);
+  });
+
+  it('validates target URL and exits 0 with --validate', () => {
+    const output = execFileSync(
+      process.execPath,
+      [cliPath, 'https://example.com', '--validate'],
+      { encoding: 'utf8' },
+    );
+    assert.match(output, /\[out-url\] Valid target: https:\/\/example\.com/);
+  });
+
+  it('validates target URL and outputs JSON with --validate --json', () => {
+    const output = execFileSync(
+      process.execPath,
+      [cliPath, 'https://example.com', '--validate', '--json'],
+      { encoding: 'utf8' },
+    );
+    const parsed = JSON.parse(output.trim());
+    assert.strictEqual(parsed.status, 'valid');
+    assert.strictEqual(parsed.valid, true);
+    assert.strictEqual(parsed.protocol, 'https:');
+  });
+
+  it('rejects dangerous target URL and exits 1 with --validate', () => {
+    assert.throws(
+      () => execFileSync(
+        process.execPath,
+        [cliPath, 'javascript:alert(1)', '--validate'],
+        { encoding: 'utf8', stdio: 'pipe' },
+      ),
+      (err) => {
+        assert.strictEqual(err.status, 1);
+        assert.match(err.stderr.toString(), /Dangerous or unsupported protocol: javascript:/);
+        return true;
+      },
+    );
+  });
+
+  it('rejects dangerous target URL and outputs JSON error with --validate --json', () => {
+    assert.throws(
+      () => execFileSync(
+        process.execPath,
+        [cliPath, 'javascript:alert(1)', '--validate', '--json'],
+        { encoding: 'utf8', stdio: 'pipe' },
+      ),
+      (err) => {
+        assert.strictEqual(err.status, 1);
+        const parsed = JSON.parse(err.stdout.toString().trim());
+        assert.strictEqual(parsed.status, 'invalid');
+        assert.strictEqual(parsed.valid, false);
+        assert.match(parsed.error, /Dangerous or unsupported protocol/);
+        return true;
+      },
+    );
   });
 });
