@@ -10,5 +10,10 @@ export interface OpenOptions {
 
 declare function open(url: string, options?: OpenOptions): Promise<ChildProcess>;
 
+declare namespace open {
+  export function parseGitRemoteUrl(remoteUrl: string): string | null;
+  export function getGitRepoUrl(remote?: string): string | null;
+}
+
 export { open };
 export default open;

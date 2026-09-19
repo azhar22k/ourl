@@ -32,6 +32,9 @@ npx out-url https://github.com/azhar22k
 # or
 bunx ourl https://github.com/azhar22k
 
+# Open current git repository's remote URL in browser
+npx out-url --repo
+
 # Wait for browser process to terminate
 npx out-url https://github.com/azhar22k --wait
 
