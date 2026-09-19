@@ -31,6 +31,12 @@ describe('out-url core', () => {
     assert.strictEqual(open, open.open);
   });
 
+  it('defines valid package exports in package.json', () => {
+    assert.ok(pkg.exports);
+    assert.strictEqual(pkg.exports['.'].default, './index.js');
+    assert.strictEqual(pkg.exports['.'].types, './index.d.ts');
+  });
+
   describe('command resolution across platforms', () => {
     it('resolves darwin open command without wait', () => {
       setPlatform('darwin');
