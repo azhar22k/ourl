@@ -1,10 +1,35 @@
-const { spawn } = require('child_process');
+const { spawn, execFileSync } = require('child_process');
 const os = require('os');
 
 const isWsl = () => {
   if (process.platform !== 'linux') return false;
   if (process.env.WSL_DISTRO_NAME || process.env.WSL_INTEROP) return true;
   return os.release().toLowerCase().includes('microsoft');
+};
+
+const parseGitRemoteUrl = (remoteUrl) => {
+  if (!remoteUrl || typeof remoteUrl !== 'string') return null;
+  const trimmed = remoteUrl.trim();
+  const sshMatch = trimmed.match(/^(?:ssh:\/\/)?git@([^:/]+)[:/](.+?)(?:\.git)?$/);
+  if (sshMatch) {
+    return `https://${sshMatch[1]}/${sshMatch[2]}`;
+  }
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed.replace(/\.git$/, '');
+  }
+  return null;
+};
+
+const getGitRepoUrl = (remote = 'origin') => {
+  try {
+    const raw = execFileSync('git', ['remote', 'get-url', remote], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    return parseGitRemoteUrl(raw);
+  } catch (err) {
+    return null;
+  }
 };
 
 const getCommands = (options = {}) => {
@@ -72,5 +97,7 @@ open.open = open;
 open.getCommands = getCommands;
 open.isWsl = isWsl;
 open.formatUrl = formatUrl;
+open.parseGitRemoteUrl = parseGitRemoteUrl;
+open.getGitRepoUrl = getGitRepoUrl;
 
 module.exports = open;

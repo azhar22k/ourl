@@ -17,12 +17,14 @@ const showHelp = () => {
     $ <command> | out-url
 
   Options:
+    --repo         Open the current git repository's remote URL
     --wait         Wait for the opened process to terminate
     -v, --version  Display version
     -h, --help     Display this help message
 
   Examples:
     $ out-url https://github.com
+    $ ourl --repo
     $ ourl https://github.com --wait
     $ echo "https://github.com" | out-url
 `);
@@ -60,6 +62,15 @@ const run = async () => {
 
   const wait = args.includes('--wait');
   let url = args.find((arg) => !arg.startsWith('-'));
+
+  if (args.includes('--repo')) {
+    url = open.getGitRepoUrl();
+    if (!url) {
+      // eslint-disable-next-line no-console
+      console.error('Error: Could not resolve git remote "origin". Are you in a git repository with an origin remote?');
+      process.exit(1);
+    }
+  }
 
   if (!url) {
     url = await readStdin();
