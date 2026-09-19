@@ -56,6 +56,31 @@ echo "https://github.com/azhar22k" | bunx ourl
 
 # Print URL in headless CI / Docker environments without a display
 npx out-url https://github.com/azhar22k --fallback
+
+# Machine-readable JSON output for AI agents and scripts
+npx out-url http://localhost:3000 --json
+```
+
+## AI Agents & Automation
+
+`out-url` is designed to be agent-ready for AI assistants (Cursor, Claude, Antigravity, Copilot) and automation scripts.
+
+### Machine-Readable JSON Output (`--json`)
+AI agents and scripts can inspect the exact launch status and process ID without parsing human terminal output:
+
+```bash
+npx out-url http://localhost:3000 --json
+```
+
+Output:
+```json
+{
+  "status": "success",
+  "target": "http://localhost:3000",
+  "resolvedTarget": "http://localhost:3000",
+  "pid": 58312,
+  "platform": "darwin"
+}
 ```
 
 ## API Usage

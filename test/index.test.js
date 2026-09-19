@@ -257,7 +257,27 @@ describe('out-url CLI', () => {
     assert.match(output, /--app/);
     assert.match(output, /--incognito/);
     assert.match(output, /--fallback/);
+    assert.match(output, /--json/);
     assert.match(output, /<command> \| out-url/);
+  });
+
+  it('prints version as JSON with -v and --json flags', () => {
+    const output = execFileSync(process.execPath, [cliPath, '-v', '--json'], { encoding: 'utf8' });
+    const parsed = JSON.parse(output.trim());
+    assert.strictEqual(parsed.version, pkg.version);
+  });
+
+  it('outputs error JSON when no target is provided and --json is set', () => {
+    assert.throws(
+      () => execFileSync(process.execPath, [cliPath, '--json'], { input: '', stdio: 'pipe' }),
+      (err) => {
+        assert.strictEqual(err.status, 1);
+        const parsed = JSON.parse(err.stdout.toString().trim());
+        assert.strictEqual(parsed.status, 'error');
+        assert.strictEqual(parsed.message, 'No target or URL provided.');
+        return true;
+      },
+    );
   });
 
   it('exits with error and shows help when stdin is empty and no args given', () => {
