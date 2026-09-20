@@ -18,7 +18,8 @@
   "files": [
     "index.js",
     "index.d.ts",
-    "bin"
+    "bin",
+    "lib"
   ],
   "scripts": {
     "lint": "eslint .",
