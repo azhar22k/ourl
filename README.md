@@ -462,6 +462,25 @@ Output:
 
 ---
 
+## ⚖️ Comparison with Alternatives
+
+| Feature | **out-url (`ourl`)** | **open** | **opener** | **better-opn** |
+| :--- | :---: | :---: | :---: | :---: |
+| **Dependencies** | **0 (Zero)** | 3–5 packages | 0 | 2–3 packages |
+| **Module Support** | **Dual (CJS + ESM)** | ESM-only (v8+) | CommonJS | CommonJS |
+| **Model Context Protocol (MCP)** | ✅ Native (`--mcp`) | ❌ No | ❌ No | ❌ No |
+| **LLM Tool Schemas** | ✅ OpenAI, Claude, Gemini | ❌ No | ❌ No | ❌ No |
+| **URL Security Validation** | ✅ Built-in | ❌ No | ❌ No | ❌ No |
+| **Dry Run Simulation (`--dry-run`)** | ✅ Built-in | ❌ No | ❌ No | ❌ No |
+| **Browser Flags (`--browser-args`)** | ✅ Built-in | ⚠️ Partial | ❌ No | ⚠️ Partial |
+| **Incognito Flag (`-i`)** | ✅ Built-in | ❌ Manual args | ❌ No | ❌ Manual args |
+| **Android / Termux Support** | ✅ Native | ❌ No | ❌ No | ❌ No |
+| **Headless CI / Fallback** | ✅ Built-in | ❌ Hangs / errors | ❌ Errors | ❌ Errors |
+
+> *Note: All product and package names are trademarks of their respective owners. Comparison reflects public feature sets as of latest releases.*
+
+---
+
 ## 🔄 Releases & Versioning
 
 This repository follows [Conventional Commits](https://www.conventionalcommits.org/) and uses [Google Release Please](https://github.com/googleapis/release-please) for automated semantic versioning and package publishing.
