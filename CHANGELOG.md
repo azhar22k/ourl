@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.5.0](https://github.com/azhar22k/ourl/compare/out-url-v1.4.0...out-url-v1.5.0) (2026-09-20)
+
+
+### Features
+
+* add browserArgs option and flags for automation and agent debugging ([#35](https://github.com/azhar22k/ourl/issues/35)) ([15d71bb](https://github.com/azhar22k/ourl/commit/15d71bba04cbc07d5d44a270ef22da9165499d64))
+* add built-in LLM function calling tool definitions and --schema flag ([#36](https://github.com/azhar22k/ourl/issues/36)) ([4dfea56](https://github.com/azhar22k/ourl/commit/4dfea5690e627b50ee9999220fbd2f7067bb3491))
+* add dry-run mode for command simulation and agent inspection ([#38](https://github.com/azhar22k/ourl/issues/38)) ([ec20383](https://github.com/azhar22k/ourl/commit/ec20383ae0ea0db369364f608c9bf3fba1aebfa3))
+* add native Model Context Protocol (MCP) server support and --mcp flag ([#37](https://github.com/azhar22k/ourl/issues/37)) ([d6117d8](https://github.com/azhar22k/ourl/commit/d6117d85c41e79c2bac7ee999d6ddb0f52e51a5e))
+* add target URL validation and security sanitization for AI agents ([#39](https://github.com/azhar22k/ourl/issues/39)) ([3f0f390](https://github.com/azhar22k/ourl/commit/3f0f390a33f58ba4f2984b9c5d99abe69bd92a86))
+* **cli:** add --json flag for AI agents and automated scripts ([#33](https://github.com/azhar22k/ourl/issues/33)) ([6cbfc09](https://github.com/azhar22k/ourl/commit/6cbfc09b2b3912d68ab0dba9d58aa295f75350d8))
+* **refactor:** split monolithic logic and tests into modular files ([#41](https://github.com/azhar22k/ourl/issues/41)) ([05a82d9](https://github.com/azhar22k/ourl/commit/05a82d9651a0851bdfb7d261c58259bd0d9b636f))
+
 ## [1.4.0](https://github.com/azhar22k/ourl/compare/out-url-v1.3.0...out-url-v1.4.0) (2026-09-19)
 
 
